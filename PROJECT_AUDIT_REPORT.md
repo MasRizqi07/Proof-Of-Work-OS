@@ -21,19 +21,19 @@ The project is a reasonable seed for continued development, but it needs a delib
 
 ## 2. Evidence and Validation Results
 
-| Check | Result | Evidence |
-|---|---|---|
-| Dependency installation | PASS | `npm install` completed successfully |
-| Frontend production build | PASS | `npm run build`; Vite generated `client/dist` |
-| Repository lint | NOT IMPLEMENTED | `npm run lint` only prints `No lint configured yet` |
-| Backend health endpoint | PASS | `GET /api/ping` returned `status: ok` |
-| User endpoint | PASS | `GET /api/user` returned `Alex Developer` |
-| Tasks endpoint | PASS | `GET /api/tasks` returned initial task data |
-| Task creation happy path | PASS | Valid task creation path is implemented |
-| Task creation validation | FAIL | Empty JSON `{}` returned HTTP 201 and created a task with no title |
-| Browser smoke test | PASS WITH DEFECT | UI loaded without console errors, but displayed the blank task created by the invalid request |
-| Dependency audit | FAIL / NEEDS REMEDIATION | 12 advisories: 1 critical, 5 high, 5 moderate, 1 low |
-| Git history maturity | NEEDS IMPROVEMENT | One repository commit: `first commit` |
+| Check                     | Result                   | Evidence                                                                                      |
+| ------------------------- | ------------------------ | --------------------------------------------------------------------------------------------- |
+| Dependency installation   | PASS                     | `npm install` completed successfully                                                          |
+| Frontend production build | PASS                     | `npm run build`; Vite generated `client/dist`                                                 |
+| Repository lint           | NOT IMPLEMENTED          | `npm run lint` only prints `No lint configured yet`                                           |
+| Backend health endpoint   | PASS                     | `GET /api/ping` returned `status: ok`                                                         |
+| User endpoint             | PASS                     | `GET /api/user` returned `Alex Developer`                                                     |
+| Tasks endpoint            | PASS                     | `GET /api/tasks` returned initial task data                                                   |
+| Task creation happy path  | PASS                     | Valid task creation path is implemented                                                       |
+| Task creation validation  | FAIL                     | Empty JSON `{}` returned HTTP 201 and created a task with no title                            |
+| Browser smoke test        | PASS WITH DEFECT         | UI loaded without console errors, but displayed the blank task created by the invalid request |
+| Dependency audit          | FAIL / NEEDS REMEDIATION | 12 advisories: 1 critical, 5 high, 5 moderate, 1 low                                          |
+| Git history maturity      | NEEDS IMPROVEMENT        | One repository commit: `first commit`                                                         |
 
 The audit intentionally did not run `npm audit fix --force`; it can introduce breaking major upgrades and should be handled as a reviewed dependency upgrade.
 

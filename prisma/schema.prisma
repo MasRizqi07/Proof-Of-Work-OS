@@ -1,0 +1,83 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Project {
+  id          String    @id @default(uuid()) @db.Uuid
+  ownerId     String    @db.Uuid
+  name        String
+  description String?
+  archivedAt  DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  owner       User      @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  tasks       Task[]
+  activities  ActivityEvent[]
+
+  @@index([ownerId, createdAt])
+}
+
+model Task {
+  id          String   @id @default(uuid()) @db.Uuid
+  userId      String   @db.Uuid
+  projectId   String?  @db.Uuid
+  title       String
+  description String?
+  status      String   @default("todo")
+  priority    String   @default("medium")
+  progress    Int      @default(0)
+  dueDate     DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project     Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  activities  ActivityEvent[]
+
+  @@index([userId, status, createdAt])
+  @@index([projectId, status, createdAt])
+}
+
+model User {
+  id            String          @id @db.Uuid
+  externalAuthId String         @unique
+  email         String?         @unique
+  name          String?
+  role          String?
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  profile       Profile?
+  projects      Project[]
+  tasks         Task[]
+  activities    ActivityEvent[]
+}
+
+model Profile {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @unique @db.Uuid
+  bio       String?
+  focus     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model ActivityEvent {
+  id         String    @id @default(uuid()) @db.Uuid
+  userId     String    @db.Uuid
+  projectId  String?   @db.Uuid
+  taskId     String?   @db.Uuid
+  type       String
+  metadata   Json?
+  occurredAt DateTime  @default(now())
+  createdAt  DateTime  @default(now())
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project    Project?  @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  task       Task?     @relation(fields: [taskId], references: [id], onDelete: SetNull)
+
+  @@index([userId, occurredAt])
+}

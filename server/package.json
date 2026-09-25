@@ -5,15 +5,29 @@
   "main": "index.js",
   "scripts": {
     "dev": "nodemon index.js --watch .",
-    "start": "node index.js"
+    "start": "node index.js",
+    "test": "node --test",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:seed": "prisma db seed"
   },
   "dependencies": {
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",
     "express": "^4.18.4",
-    "morgan": "^1.10.0"
+    "morgan": "^1.10.0",
+    "express-rate-limit": "^7.5.0",
+    "helmet": "^7.1.0",
+    "jose": "^5.10.0",
+    "zod": "^3.23.8",
+    "@prisma/client": "^6.16.0"
   },
   "devDependencies": {
-    "nodemon": "^3.0.1"
+    "nodemon": "^3.0.1",
+    "prisma": "^6.16.0",
+    "supertest": "^7.1.4"
+  },
+  "prisma": {
+    "seed": "node prisma/seed.js"
   }
 }
