@@ -24,17 +24,57 @@ describe('api client', () => {
     );
   });
 
-  it('surfaces useful server errors', async () => {
+  it('surfaces structured server errors', async () => {
     vi.stubGlobal(
       'fetch',
       vi.fn().mockResolvedValue({
         ok: false,
         status: 422,
-        json: async () => ({ message: 'Title is required' }),
+        json: async () => ({
+          requestId: 'req-123',
+          error: {
+            code: 'VALIDATION_ERROR',
+            message: 'Title is required',
+            details: [{ path: ['title'], message: 'Required' }],
+          },
+        }),
       }),
     );
-    await expect(api.createTask({ title: '' })).rejects.toThrow(
-      'Title is required',
+    const error = await api.createTask({ title: '' }).catch((value) => value);
+    expect(error).toMatchObject({
+      name: 'ApiError',
+      message: 'Title is required',
+      requestId: 'req-123',
+      status: 422,
+      code: 'VALIDATION_ERROR',
+      details: [{ path: ['title'], message: 'Required' }],
+    });
+  });
+
+  it('returns null for a successful 204 response', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({ ok: true, status: 204 }),
+    );
+    await expect(api.deleteTask('task-1')).resolves.toBeNull();
+  });
+
+  it('sends only the explicit update DTO', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        text: async () => '{}',
+      }),
+    );
+    await api.updateTask('task-1', { status: 'done' });
+    expect(fetch).toHaveBeenCalledWith(
+      'http://localhost:4000/api/tasks/task-1',
+      expect.objectContaining({
+        method: 'PATCH',
+        body: JSON.stringify({ status: 'done' }),
+      }),
     );
   });
 });

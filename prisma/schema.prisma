@@ -12,6 +12,7 @@ model Project {
   ownerId     String    @db.Uuid
   name        String
   description String?
+  status      ProjectStatus @default(ACTIVE)
   archivedAt  DateTime?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
@@ -28,10 +29,11 @@ model Task {
   projectId   String?  @db.Uuid
   title       String
   description String?
-  status      String   @default("todo")
-  priority    String   @default("medium")
+  status      TaskStatus @default(TODO)
+  priority    TaskPriority @default(MEDIUM)
   progress    Int      @default(0)
   dueDate     DateTime?
+  completedAt DateTime?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -40,6 +42,26 @@ model Task {
 
   @@index([userId, status, createdAt])
   @@index([projectId, status, createdAt])
+}
+
+enum TaskStatus {
+  TODO        @map("todo")
+  IN_PROGRESS @map("in-progress")
+  DONE        @map("done")
+  CANCELLED   @map("cancelled")
+}
+
+enum TaskPriority {
+  LOW    @map("low")
+  MEDIUM @map("medium")
+  HIGH   @map("high")
+  URGENT @map("urgent")
+}
+
+enum ProjectStatus {
+  ACTIVE    @map("active")
+  PAUSED    @map("paused")
+  COMPLETED @map("completed")
 }
 
 model User {

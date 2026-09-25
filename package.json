@@ -12,6 +12,8 @@
     "start": "npm --workspace server run start",
     "build": "npm --workspace client run build",
     "test": "npm --workspace server test && npm --workspace client test",
+    "db:migrate:deploy": "npx prisma migrate deploy",
+    "db:migrate:status": "npx prisma migrate status",
     "lint": "eslint .",
     "format": "prettier --write \"server/**/*.js\" \"client/src/**/*.{js,jsx,css}\" \"prisma/**/*.js\" \"*.{js,json,md}\"",
     "format:check": "prettier --check \"server/**/*.js\" \"client/src/**/*.{js,jsx,css}\" \"prisma/**/*.js\" \"*.{js,json,md}\""

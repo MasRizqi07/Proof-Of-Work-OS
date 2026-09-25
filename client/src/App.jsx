@@ -6,7 +6,7 @@ import { supabase, isSupabaseConfigured } from './lib/supabase';
 const fallbackUser = {
   name: 'Demo developer',
   role: 'Software Engineer',
-  metrics: { weeklyPoints: 0, streakDays: 0, projectsCompleted: 0 },
+  metrics: { completedTasks: 0, weeklyActivityEvents: 0, projectsCompleted: 0 },
 };
 
 function StateMessage({ children, action }) {
@@ -159,7 +159,9 @@ function TaskList({ tasks, onDelete, onUpdate, isDeleting }) {
             <select
               aria-label={`Status for ${task.title}`}
               value={task.status}
-              onChange={(e) => onUpdate({ ...task, status: e.target.value })}
+              onChange={(e) =>
+                onUpdate({ id: task.id, status: e.target.value })
+              }
             >
               <option value="todo">todo</option>
               <option value="in-progress">in-progress</option>
@@ -234,7 +236,7 @@ function Projects({
           {projects.map((project) => (
             <div className="project-card" key={project.id}>
               <strong>{project.name}</strong>
-              <span>{project.status || 'active'}</span>
+              <span>{project.archivedAt ? 'archived' : project.status}</span>
               <select
                 aria-label={`Status for ${project.name}`}
                 value={project.status || 'active'}
@@ -244,7 +246,7 @@ function Projects({
               >
                 <option value="active">active</option>
                 <option value="paused">paused</option>
-                <option value="done">done</option>
+                <option value="completed">completed</option>
               </select>
               <button
                 className="icon-button"
@@ -265,35 +267,87 @@ function Projects({
 export default function App() {
   const queryClient = useQueryClient();
   const [session, setSession] = useState(null);
+  const [authLoading, setAuthLoading] = useState(isSupabaseConfigured);
+  const authenticated = !isSupabaseConfigured || Boolean(session);
+  const unauthenticated =
+    isSupabaseConfigured && !authLoading && !authenticated;
+
   useEffect(() => {
-    if (!supabase) return undefined;
-    supabase.auth.getSession().then(({ data }) => setSession(data.session));
+    if (!supabase) {
+      setAuthLoading(false);
+      return undefined;
+    }
+    let previousSession = null;
+    supabase.auth.getSession().then(({ data }) => {
+      previousSession = data.session;
+      setSession(data.session);
+      setAuthLoading(false);
+    });
     const { data: listener } = supabase.auth.onAuthStateChange(
-      (_event, nextSession) => setSession(nextSession),
+      (_event, nextSession) => {
+        const wasAuthenticated = Boolean(previousSession);
+        const isAuthenticated = Boolean(nextSession);
+        previousSession = nextSession;
+        setSession(nextSession);
+        setAuthLoading(false);
+        if (wasAuthenticated && !isAuthenticated) {
+          queryClient.cancelQueries();
+          queryClient.removeQueries();
+        } else if (!wasAuthenticated && isAuthenticated) {
+          queryClient.invalidateQueries();
+          queryClient.refetchQueries({ type: 'active' });
+        }
+      },
     );
     return () => listener.subscription.unsubscribe();
-  }, []);
+  }, [queryClient]);
   const userQuery = useQuery({
     queryKey: ['user'],
     queryFn: api.getUser,
     retry: 1,
+    enabled: authenticated,
   });
   const tasksQuery = useQuery({
     queryKey: ['tasks'],
     queryFn: api.getTasks,
     retry: 1,
+    enabled: authenticated,
   });
   const projectsQuery = useQuery({
     queryKey: ['projects'],
     queryFn: api.getProjects,
     retry: 1,
+    enabled: authenticated,
   });
   const createTask = useMutation({
     mutationFn: api.createTask,
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['tasks'] }),
   });
   const updateTask = useMutation({
-    mutationFn: ({ id, ...task }) => api.updateTask(id, task),
+    mutationFn: ({
+      id,
+      title,
+      description,
+      status,
+      priority,
+      progress,
+      dueDate,
+      projectId,
+    }) =>
+      api.updateTask(
+        id,
+        Object.fromEntries(
+          Object.entries({
+            title,
+            description,
+            status,
+            priority,
+            progress,
+            dueDate,
+            projectId,
+          }).filter(([, value]) => value !== undefined),
+        ),
+      ),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['tasks'] }),
   });
   const deleteTask = useMutation({
@@ -305,7 +359,15 @@ export default function App() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['projects'] }),
   });
   const updateProject = useMutation({
-    mutationFn: ({ id, ...project }) => api.updateProject(id, project),
+    mutationFn: ({ id, name, description, status }) =>
+      api.updateProject(
+        id,
+        Object.fromEntries(
+          Object.entries({ name, description, status }).filter(
+            ([, value]) => value !== undefined,
+          ),
+        ),
+      ),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['projects'] }),
   });
   const deleteProject = useMutation({
@@ -317,6 +379,8 @@ export default function App() {
   async function signOut() {
     await supabase?.auth.signOut();
     setSession(null);
+    await queryClient.cancelQueries();
+    queryClient.removeQueries();
   }
   return (
     <div className="app-shell">
@@ -337,12 +401,14 @@ export default function App() {
             </div>
             <AuthPanel session={session} onSignOut={signOut} />
           </div>
-          {!session && isSupabaseConfigured && (
-            <AuthPanel session={session} onSignOut={signOut} />
-          )}
         </div>
       </header>
-      {userQuery.isError && (
+      {authLoading ? (
+        <StateMessage>Checking your session…</StateMessage>
+      ) : unauthenticated ? (
+        <StateMessage>Sign in to access your workspace.</StateMessage>
+      ) : null}
+      {!authLoading && authenticated && userQuery.isError && (
         <StateMessage>
           We couldn't load your profile.{' '}
           <button className="link-button" onClick={() => userQuery.refetch()}>
@@ -352,8 +418,8 @@ export default function App() {
       )}
       <section className="stats-grid">
         {[
-          ['weeklyPoints', 'Weekly points'],
-          ['streakDays', 'Streak days'],
+          ['completedTasks', 'Completed tasks'],
+          ['weeklyActivityEvents', 'Activity this week'],
           ['projectsCompleted', 'Projects completed'],
         ].map(([key, label]) => (
           <div className="stat-card" key={key}>
@@ -362,65 +428,67 @@ export default function App() {
           </div>
         ))}
       </section>
-      <main className="dashboard-grid">
-        <section className="panel tasks-panel">
-          <div className="panel-heading">
-            <div>
-              <p className="eyebrow">Today</p>
-              <h2>Active work</h2>
+      {!authLoading && authenticated && (
+        <main className="dashboard-grid">
+          <section className="panel tasks-panel">
+            <div className="panel-heading">
+              <div>
+                <p className="eyebrow">Today</p>
+                <h2>Active work</h2>
+              </div>
             </div>
-          </div>
-          <TaskForm
-            onCreate={(task) => createTask.mutate(task)}
-            isPending={createTask.isPending}
-          />
-          {createTask.isError && (
-            <StateMessage>
-              Couldn't add that task. {createTask.error.message}
-            </StateMessage>
-          )}
-          {updateTask.isError && (
-            <StateMessage>
-              Couldn't update that task. {updateTask.error.message}
-            </StateMessage>
-          )}
-          {deleteTask.isError && (
-            <StateMessage>
-              Couldn't delete that task. {deleteTask.error.message}
-            </StateMessage>
-          )}
-          {tasksQuery.isLoading ? (
-            <StateMessage>Loading tasks…</StateMessage>
-          ) : tasksQuery.isError ? (
-            <StateMessage>
-              Couldn't load tasks.{' '}
-              <button
-                className="link-button"
-                onClick={() => tasksQuery.refetch()}
-              >
-                Retry
-              </button>
-            </StateMessage>
-          ) : (
-            <TaskList
-              tasks={tasksQuery.data?.items || tasksQuery.data || []}
-              onDelete={(id) => deleteTask.mutate(id)}
-              onUpdate={(task) => updateTask.mutate(task)}
-              isDeleting={deleteTask.isPending}
+            <TaskForm
+              onCreate={(task) => createTask.mutate(task)}
+              isPending={createTask.isPending}
             />
-          )}
-        </section>
-        <Projects
-          projects={projectsQuery.data?.items || projectsQuery.data || []}
-          onCreate={(project) => createProject.mutate(project)}
-          onUpdate={(project) => updateProject.mutate(project)}
-          onDelete={(id) => deleteProject.mutate(id)}
-          isPending={createProject.isPending}
-          isDeleting={deleteProject.isPending}
-          error={projectsQuery.isError}
-          onRetry={() => projectsQuery.refetch()}
-        />
-      </main>
+            {createTask.isError && (
+              <StateMessage>
+                Couldn't add that task. {createTask.error.message}
+              </StateMessage>
+            )}
+            {updateTask.isError && (
+              <StateMessage>
+                Couldn't update that task. {updateTask.error.message}
+              </StateMessage>
+            )}
+            {deleteTask.isError && (
+              <StateMessage>
+                Couldn't delete that task. {deleteTask.error.message}
+              </StateMessage>
+            )}
+            {tasksQuery.isLoading ? (
+              <StateMessage>Loading tasks…</StateMessage>
+            ) : tasksQuery.isError ? (
+              <StateMessage>
+                Couldn't load tasks.{' '}
+                <button
+                  className="link-button"
+                  onClick={() => tasksQuery.refetch()}
+                >
+                  Retry
+                </button>
+              </StateMessage>
+            ) : (
+              <TaskList
+                tasks={tasksQuery.data?.items || tasksQuery.data || []}
+                onDelete={(id) => deleteTask.mutate(id)}
+                onUpdate={(task) => updateTask.mutate(task)}
+                isDeleting={deleteTask.isPending}
+              />
+            )}
+          </section>
+          <Projects
+            projects={projectsQuery.data?.items || projectsQuery.data || []}
+            onCreate={(project) => createProject.mutate(project)}
+            onUpdate={(project) => updateProject.mutate(project)}
+            onDelete={(id) => deleteProject.mutate(id)}
+            isPending={createProject.isPending}
+            isDeleting={deleteProject.isPending}
+            error={projectsQuery.isError}
+            onRetry={() => projectsQuery.refetch()}
+          />
+        </main>
+      )}
     </div>
   );
 }
