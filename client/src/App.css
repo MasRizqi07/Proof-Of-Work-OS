@@ -1,4 +1,28 @@
 :root {
+  --color-primary: #4f46e5;
+  --color-primary-hover: #4338ca;
+  --color-text: #182230;
+  --color-text-secondary: #5f6b7a;
+  --color-text-muted: #667085;
+  --color-text-dark-muted: #475467;
+  --color-text-button: #344054;
+  --color-error: #b42318;
+  --color-bg: #f5f7fb;
+  --color-surface: #fff;
+  --color-border: #e5e9f1;
+  --color-input-border: #d9dee8;
+  --color-input-bg: #fbfcfe;
+  --color-shadow: #15213d0b;
+  --color-ghost-bg: #f0f2f7;
+  --color-ghost-hover: #e4e7ec;
+  --color-status-default-bg: #eef2f6;
+  --color-status-progress-bg: #fff4d6;
+  --color-status-progress-text: #9a6700;
+  --color-status-done-bg: #dcfae6;
+  --color-status-done-text: #087443;
+  --color-demo-bg: #eef2ff;
+  --color-demo-text: #4338ca;
+
   font-family:
     Inter,
     ui-sans-serif,
@@ -6,8 +30,8 @@
     -apple-system,
     'Segoe UI',
     sans-serif;
-  color: #182230;
-  background: #f5f7fb;
+  color: var(--color-text);
+  background: var(--color-bg);
   font-synthesis: none;
 }
 * {
@@ -25,6 +49,16 @@ select {
 button {
   cursor: pointer;
 }
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+input:focus-visible,
+select:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 0;
+  border-color: var(--color-primary);
+}
 .app-shell {
   max-width: 1180px;
   margin: auto;
@@ -38,7 +72,7 @@ button {
 }
 .eyebrow {
   margin: 0 0 10px;
-  color: #4f46e5;
+  color: var(--color-primary);
   font-size: 0.75rem;
   font-weight: 800;
   letter-spacing: 0.16em;
@@ -61,15 +95,15 @@ h3 {
 }
 p {
   margin: 0;
-  color: #5f6b7a;
+  color: var(--color-text-secondary);
   line-height: 1.6;
 }
 .user-card,
 .panel,
 .stat-card {
-  border: 1px solid #e5e9f1;
-  background: #fff;
-  box-shadow: 0 16px 40px #15213d0b;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  box-shadow: 0 16px 40px var(--color-shadow);
   border-radius: 20px;
 }
 .user-card {
@@ -84,13 +118,13 @@ p {
 .user-name {
   font-size: 1.05rem;
   font-weight: 800;
-  color: #182230;
+  color: var(--color-text);
 }
 .demo-badge {
   padding: 7px 10px;
   border-radius: 999px;
-  background: #eef2ff;
-  color: #4338ca;
+  background: var(--color-demo-bg);
+  color: var(--color-demo-text);
   font-size: 0.75rem;
   font-weight: 700;
 }
@@ -109,13 +143,13 @@ p {
 }
 .form-error {
   width: 100%;
-  color: #b42318;
+  color: var(--color-error);
 }
 .link-button {
   border: 0;
   padding: 0;
   background: transparent;
-  color: #4f46e5;
+  color: var(--color-primary);
   font-weight: 700;
 }
 .auth-form .link-button {
@@ -125,23 +159,23 @@ p {
   border: 0;
   border-radius: 10px;
   padding: 10px 15px;
-  background: #4f46e5;
+  background: var(--color-primary);
   color: white;
   font-weight: 750;
 }
 .button:hover {
-  background: #4338ca;
+  background: var(--color-primary-hover);
 }
 .button:disabled {
   cursor: wait;
   opacity: 0.6;
 }
 .button-ghost {
-  background: #f0f2f7;
-  color: #344054;
+  background: var(--color-ghost-bg);
+  color: var(--color-text-button);
 }
 .button-ghost:hover {
-  background: #e4e7ec;
+  background: var(--color-ghost-hover);
 }
 .stats-grid {
   display: grid;
@@ -160,7 +194,7 @@ p {
 }
 .stat-card span,
 .project-card span {
-  color: #667085;
+  color: var(--color-text-muted);
   font-size: 0.85rem;
 }
 .dashboard-grid {
@@ -187,7 +221,7 @@ p {
 .task-form label {
   display: grid;
   gap: 5px;
-  color: #667085;
+  color: var(--color-text-muted);
   font-size: 0.75rem;
   font-weight: 700;
 }
@@ -200,10 +234,10 @@ p {
 .auth-form input {
   width: 100%;
   padding: 10px 12px;
-  border: 1px solid #d9dee8;
+  border: 1px solid var(--color-input-border);
   border-radius: 10px;
-  background: #fbfcfe;
-  color: #182230;
+  background: var(--color-input-bg);
+  color: var(--color-text);
 }
 .task-list {
   display: grid;
@@ -214,51 +248,51 @@ p {
   justify-content: space-between;
   gap: 16px;
   padding: 16px;
-  border: 1px solid #e5e9f1;
+  border: 1px solid var(--color-border);
   border-radius: 14px;
 }
 .status {
   display: inline-block;
   padding: 3px 8px;
   border-radius: 99px;
-  background: #eef2f6;
-  color: #667085;
+  background: var(--color-status-default-bg);
+  color: var(--color-text-muted);
   font-size: 0.72rem;
   font-weight: 700;
 }
 .status-in-progress {
-  background: #fff4d6;
-  color: #9a6700;
+  background: var(--color-status-progress-bg);
+  color: var(--color-status-progress-text);
 }
 .status-done {
-  background: #dcfae6;
-  color: #087443;
+  background: var(--color-status-done-bg);
+  color: var(--color-status-done-text);
 }
 .task-meta {
   display: flex;
   align-items: center;
   justify-content: flex-end;
   gap: 10px;
-  color: #667085;
+  color: var(--color-text-muted);
   font-size: 0.8rem;
   white-space: nowrap;
 }
 .task-meta select {
   padding: 5px;
-  border: 1px solid #d9dee8;
+  border: 1px solid var(--color-input-border);
   border-radius: 7px;
-  color: #475467;
+  color: var(--color-text-dark-muted);
   background: white;
 }
 .icon-button {
   border: 0;
   background: transparent;
-  color: #b42318;
+  color: var(--color-error);
   font-size: 0.8rem;
 }
 .state-message {
   padding: 18px 4px;
-  color: #667085;
+  color: var(--color-text-muted);
 }
 .inline-form {
   display: flex;
@@ -273,7 +307,7 @@ p {
   justify-content: space-between;
   gap: 10px;
   padding: 15px;
-  border: 1px solid #e5e9f1;
+  border: 1px solid var(--color-border);
   border-radius: 13px;
 }
 @media (max-width: 850px) {

@@ -1,7 +1,17 @@
-import { useEffect, useState } from 'react';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { api } from './lib/api';
-import { supabase, isSupabaseConfigured } from './lib/supabase';
+import { useAuth } from './context/AuthContext';
+import { useTasks } from './hooks/useTasks';
+import { useProjects } from './hooks/useProjects';
+import AuthPanel from './components/AuthPanel';
+import StateMessage from './components/StateMessage';
+import TaskForm from './components/TaskForm';
+import TaskFilter from './components/TaskFilter';
+import TaskList from './components/TaskList';
+import Projects from './components/Projects';
+import ProfileCard from './components/ProfileCard';
+import ActivityFeed from './components/ActivityFeed';
 
 const fallbackUser = {
   name: 'Demo developer',
@@ -9,379 +19,31 @@ const fallbackUser = {
   metrics: { completedTasks: 0, weeklyActivityEvents: 0, projectsCompleted: 0 },
 };
 
-function StateMessage({ children, action }) {
-  return (
-    <div className="state-message">
-      {children}
-      {action}
-    </div>
-  );
-}
-
-function AuthPanel({ session, onSignOut }) {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [mode, setMode] = useState('sign-in');
-  const [message, setMessage] = useState('');
-  const [busy, setBusy] = useState(false);
-
-  if (!isSupabaseConfigured)
-    return <span className="demo-badge">Demo mode</span>;
-  if (session) {
-    return (
-      <button className="button button-ghost" onClick={onSignOut}>
-        Sign out
-      </button>
-    );
-  }
-
-  async function submit(event) {
-    event.preventDefault();
-    setBusy(true);
-    setMessage('');
-    const result =
-      mode === 'sign-in'
-        ? await supabase.auth.signInWithPassword({ email, password })
-        : await supabase.auth.signUp({ email, password });
-    setBusy(false);
-    if (result.error) setMessage(result.error.message);
-    else
-      setMessage(
-        mode === 'sign-in' ? '' : 'Check your email to confirm your account.',
-      );
-  }
-
-  return (
-    <form className="auth-form" onSubmit={submit} aria-label="Authentication">
-      <input
-        aria-label="Email"
-        type="email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        placeholder="you@example.com"
-        required
-      />
-      <input
-        aria-label="Password"
-        type="password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        placeholder="Password"
-        minLength={6}
-        required
-      />
-      <button className="button" disabled={busy}>
-        {busy ? 'Working…' : mode === 'sign-in' ? 'Sign in' : 'Create account'}
-      </button>
-      <button
-        type="button"
-        className="link-button"
-        onClick={() => setMode(mode === 'sign-in' ? 'sign-up' : 'sign-in')}
-      >
-        {mode === 'sign-in'
-          ? 'Create an account'
-          : 'Already have an account? Sign in'}
-      </button>
-      {message && (
-        <small className="form-error" role="alert">
-          {message}
-        </small>
-      )}
-    </form>
-  );
-}
-
-function TaskForm({ onCreate, isPending }) {
-  const [title, setTitle] = useState('');
-  const [priority, setPriority] = useState('medium');
-  const [dueDate, setDueDate] = useState('');
-  function submit(event) {
-    event.preventDefault();
-    if (!title.trim()) return;
-    onCreate({ title: title.trim(), priority, dueDate: dueDate || null });
-    setTitle('');
-    setDueDate('');
-  }
-  return (
-    <form className="task-form" onSubmit={submit}>
-      <label>
-        Title{' '}
-        <input
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          placeholder="New task title"
-          required
-        />
-      </label>
-      <label>
-        Priority{' '}
-        <select value={priority} onChange={(e) => setPriority(e.target.value)}>
-          <option>low</option>
-          <option>medium</option>
-          <option>high</option>
-        </select>
-      </label>
-      <label>
-        Due date{' '}
-        <input
-          type="date"
-          value={dueDate}
-          onChange={(e) => setDueDate(e.target.value)}
-        />
-      </label>
-      <button className="button" disabled={isPending}>
-        {isPending ? 'Adding…' : 'Add task'}
-      </button>
-    </form>
-  );
-}
-
-function TaskList({ tasks, onDelete, onUpdate, isDeleting }) {
-  if (!tasks.length)
-    return (
-      <StateMessage>
-        No tasks yet. Add the first one to get moving.
-      </StateMessage>
-    );
-  return (
-    <div className="task-list">
-      {tasks.map((task) => (
-        <article key={task.id} className="task-card">
-          <div>
-            <h3>{task.title}</h3>
-            <span className={`status status-${task.status}`}>
-              {task.status}
-            </span>
-          </div>
-          <div className="task-meta">
-            <span>{task.priority} priority</span>
-            <span>Due {task.dueDate || 'TBD'}</span>
-            <select
-              aria-label={`Status for ${task.title}`}
-              value={task.status}
-              onChange={(e) =>
-                onUpdate({ id: task.id, status: e.target.value })
-              }
-            >
-              <option value="todo">todo</option>
-              <option value="in-progress">in-progress</option>
-              <option value="done">done</option>
-            </select>
-            <button
-              className="icon-button"
-              disabled={isDeleting}
-              onClick={() => onDelete(task.id)}
-              aria-label={`Delete ${task.title}`}
-            >
-              Delete
-            </button>
-          </div>
-        </article>
-      ))}
-    </div>
-  );
-}
-
-function Projects({
-  projects,
-  onCreate,
-  onDelete,
-  onUpdate,
-  isPending,
-  isDeleting,
-  error,
-  onRetry,
-}) {
-  const [name, setName] = useState('');
-  return (
-    <section className="panel">
-      <div className="panel-heading">
-        <div>
-          <p className="eyebrow">Portfolio</p>
-          <h2>Projects</h2>
-        </div>
-        <form
-          className="inline-form"
-          onSubmit={(e) => {
-            e.preventDefault();
-            if (name.trim()) {
-              onCreate({ name: name.trim() });
-              setName('');
-            }
-          }}
-        >
-          <input
-            aria-label="Project name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="New project"
-            required
-          />
-          <button className="button" disabled={isPending}>
-            Add
-          </button>
-        </form>
-      </div>
-      {error ? (
-        <StateMessage>
-          Couldn't load projects.{' '}
-          <button className="link-button" onClick={onRetry}>
-            Retry
-          </button>
-        </StateMessage>
-      ) : !projects.length ? (
-        <StateMessage>No projects yet.</StateMessage>
-      ) : (
-        <div className="project-grid">
-          {projects.map((project) => (
-            <div className="project-card" key={project.id}>
-              <strong>{project.name}</strong>
-              <span>{project.archivedAt ? 'archived' : project.status}</span>
-              <select
-                aria-label={`Status for ${project.name}`}
-                value={project.status || 'active'}
-                onChange={(e) =>
-                  onUpdate({ ...project, status: e.target.value })
-                }
-              >
-                <option value="active">active</option>
-                <option value="paused">paused</option>
-                <option value="completed">completed</option>
-              </select>
-              <button
-                className="icon-button"
-                disabled={isDeleting}
-                onClick={() => onDelete(project.id)}
-                aria-label={`Delete ${project.name}`}
-              >
-                Delete
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
-    </section>
-  );
-}
-
 export default function App() {
-  const queryClient = useQueryClient();
-  const [session, setSession] = useState(null);
-  const [authLoading, setAuthLoading] = useState(isSupabaseConfigured);
-  const authenticated = !isSupabaseConfigured || Boolean(session);
-  const unauthenticated =
-    isSupabaseConfigured && !authLoading && !authenticated;
+  const { authLoading, authenticated, unauthenticated } = useAuth();
+  const [statusFilter, setStatusFilter] = useState('');
+  const [projectFilter, setProjectFilter] = useState('');
 
-  useEffect(() => {
-    if (!supabase) {
-      setAuthLoading(false);
-      return undefined;
-    }
-    let previousSession = null;
-    supabase.auth.getSession().then(({ data }) => {
-      previousSession = data.session;
-      setSession(data.session);
-      setAuthLoading(false);
-    });
-    const { data: listener } = supabase.auth.onAuthStateChange(
-      (_event, nextSession) => {
-        const wasAuthenticated = Boolean(previousSession);
-        const isAuthenticated = Boolean(nextSession);
-        previousSession = nextSession;
-        setSession(nextSession);
-        setAuthLoading(false);
-        if (wasAuthenticated && !isAuthenticated) {
-          queryClient.cancelQueries();
-          queryClient.removeQueries();
-        } else if (!wasAuthenticated && isAuthenticated) {
-          queryClient.invalidateQueries();
-          queryClient.refetchQueries({ type: 'active' });
-        }
-      },
-    );
-    return () => listener.subscription.unsubscribe();
-  }, [queryClient]);
   const userQuery = useQuery({
     queryKey: ['user'],
-    queryFn: api.getUser,
+    queryFn: ({ signal }) => api.getUser({ signal }),
     retry: 1,
     enabled: authenticated,
   });
-  const tasksQuery = useQuery({
-    queryKey: ['tasks'],
-    queryFn: api.getTasks,
-    retry: 1,
-    enabled: authenticated,
-  });
-  const projectsQuery = useQuery({
-    queryKey: ['projects'],
-    queryFn: api.getProjects,
-    retry: 1,
-    enabled: authenticated,
-  });
-  const createTask = useMutation({
-    mutationFn: api.createTask,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['tasks'] }),
-  });
-  const updateTask = useMutation({
-    mutationFn: ({
-      id,
-      title,
-      description,
-      status,
-      priority,
-      progress,
-      dueDate,
-      projectId,
-    }) =>
-      api.updateTask(
-        id,
-        Object.fromEntries(
-          Object.entries({
-            title,
-            description,
-            status,
-            priority,
-            progress,
-            dueDate,
-            projectId,
-          }).filter(([, value]) => value !== undefined),
-        ),
-      ),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['tasks'] }),
-  });
-  const deleteTask = useMutation({
-    mutationFn: api.deleteTask,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['tasks'] }),
-  });
-  const createProject = useMutation({
-    mutationFn: api.createProject,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['projects'] }),
-  });
-  const updateProject = useMutation({
-    mutationFn: ({ id, name, description, status }) =>
-      api.updateProject(
-        id,
-        Object.fromEntries(
-          Object.entries({ name, description, status }).filter(
-            ([, value]) => value !== undefined,
-          ),
-        ),
-      ),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['projects'] }),
-  });
-  const deleteProject = useMutation({
-    mutationFn: api.deleteProject,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['projects'] }),
-  });
-  const user = userQuery.data || fallbackUser;
 
-  async function signOut() {
-    await supabase?.auth.signOut();
-    setSession(null);
-    await queryClient.cancelQueries();
-    queryClient.removeQueries();
-  }
+  const { tasksQuery, createTask, updateTask, deleteTask } = useTasks(
+    authenticated,
+    {
+      status: statusFilter || undefined,
+      projectId: projectFilter || undefined,
+    },
+  );
+  const { projectsQuery, createProject, updateProject, deleteProject } =
+    useProjects(authenticated);
+
+  const user = userQuery.data || fallbackUser;
+  const projects = projectsQuery.data?.items || projectsQuery.data || [];
+
   return (
     <div className="app-shell">
       <header className="app-header">
@@ -399,8 +61,11 @@ export default function App() {
               <p className="user-name">{user.name}</p>
               <p>{user.role}</p>
             </div>
-            <AuthPanel session={session} onSignOut={signOut} />
+            <AuthPanel />
           </div>
+          {!authLoading && authenticated && userQuery.data && (
+            <ProfileCard user={userQuery.data} />
+          )}
         </div>
       </header>
       {authLoading ? (
@@ -440,6 +105,14 @@ export default function App() {
             <TaskForm
               onCreate={(task) => createTask.mutate(task)}
               isPending={createTask.isPending}
+              projects={projects}
+            />
+            <TaskFilter
+              statusFilter={statusFilter}
+              onStatusChange={setStatusFilter}
+              projectFilter={projectFilter}
+              onProjectChange={setProjectFilter}
+              projects={projects}
             />
             {createTask.isError && (
               <StateMessage>
@@ -477,16 +150,20 @@ export default function App() {
               />
             )}
           </section>
-          <Projects
-            projects={projectsQuery.data?.items || projectsQuery.data || []}
-            onCreate={(project) => createProject.mutate(project)}
-            onUpdate={(project) => updateProject.mutate(project)}
-            onDelete={(id) => deleteProject.mutate(id)}
-            isPending={createProject.isPending}
-            isDeleting={deleteProject.isPending}
-            error={projectsQuery.isError}
-            onRetry={() => projectsQuery.refetch()}
-          />
+          <div className="sidebar-stack">
+            <Projects
+              projects={projects}
+              onCreate={(project) => createProject.mutate(project)}
+              onUpdate={(project) => updateProject.mutate(project)}
+              onDelete={(id) => deleteProject.mutate(id)}
+              isPending={createProject.isPending}
+              isDeleting={deleteProject.isPending}
+              isLoading={projectsQuery.isLoading}
+              error={projectsQuery.isError}
+              onRetry={() => projectsQuery.refetch()}
+            />
+            <ActivityFeed enabled={authenticated} />
+          </div>
         </main>
       )}
     </div>

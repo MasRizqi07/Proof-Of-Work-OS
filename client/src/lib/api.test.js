@@ -77,4 +77,43 @@ describe('api client', () => {
       }),
     );
   });
+
+  it('getUser calls /api/user and returns user profile', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => ({ id: 'u-1', name: 'Dev' }),
+      }),
+    );
+    await expect(api.getUser()).resolves.toEqual({ id: 'u-1', name: 'Dev' });
+    expect(fetch).toHaveBeenCalledWith(
+      'http://localhost:4000/api/user',
+      expect.objectContaining({
+        headers: { 'Content-Type': 'application/json' },
+      }),
+    );
+  });
+
+  it('project endpoints create and delete projects', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi
+        .fn()
+        .mockResolvedValueOnce({
+          ok: true,
+          status: 201,
+          json: async () => ({ id: 'p-1', name: 'Core' }),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          status: 204,
+        }),
+    );
+
+    const created = await api.createProject({ name: 'Core' });
+    expect(created).toEqual({ id: 'p-1', name: 'Core' });
+    await expect(api.deleteProject('p-1')).resolves.toBeNull();
+  });
 });

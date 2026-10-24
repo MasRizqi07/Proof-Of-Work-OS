@@ -26,7 +26,7 @@ async function readResponseBody(response) {
   }
 }
 
-async function request(path, options = {}) {
+async function request(path, { signal, ...options } = {}) {
   const { data } = supabase
     ? await supabase.auth.getSession()
     : { data: { session: null } };
@@ -40,6 +40,7 @@ async function request(path, options = {}) {
   const response = await fetch(`${API_BASE_URL}${path}`, {
     ...options,
     headers,
+    signal,
   });
   const body = await readResponseBody(response);
   if (!response.ok) {
@@ -55,8 +56,21 @@ async function request(path, options = {}) {
 }
 
 export const api = {
-  getUser: () => request('/user'),
-  getTasks: () => request('/tasks'),
+  getUser: ({ signal } = {}) => request('/user', { signal }),
+  updateProfile: (patch) =>
+    request('/user/profile', {
+      method: 'PATCH',
+      body: JSON.stringify(patch),
+    }),
+  getActivities: ({ signal, page } = {}) =>
+    request(`/activities${page ? `?page=${page}` : ''}`, { signal }),
+  getTasks: ({ signal, status, projectId } = {}) => {
+    const params = new URLSearchParams();
+    if (status) params.set('status', status);
+    if (projectId) params.set('projectId', projectId);
+    const qs = params.toString();
+    return request(`/tasks${qs ? `?${qs}` : ''}`, { signal });
+  },
   createTask: (task) =>
     request('/tasks', { method: 'POST', body: JSON.stringify(task) }),
   updateTask: (id, taskPatch) =>
@@ -65,7 +79,7 @@ export const api = {
       body: JSON.stringify(taskPatch),
     }),
   deleteTask: (id) => request(`/tasks/${id}`, { method: 'DELETE' }),
-  getProjects: () => request('/projects'),
+  getProjects: ({ signal } = {}) => request('/projects', { signal }),
   createProject: (project) =>
     request('/projects', { method: 'POST', body: JSON.stringify(project) }),
   updateProject: (id, projectPatch) =>
