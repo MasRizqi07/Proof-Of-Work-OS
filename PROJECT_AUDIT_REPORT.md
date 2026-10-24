@@ -37,6 +37,34 @@ The project is a reasonable seed for continued development, but it needs a delib
 
 The audit intentionally did not run `npm audit fix --force`; it can introduce breaking major upgrades and should be handled as a reviewed dependency upgrade.
 
+## 2A. Foundation Follow-up Evidence (2026-09-25)
+
+This section supersedes the prototype-era observations above where the repository has
+since been changed. Each item is explicitly classified so local evidence is not
+confused with production or remote evidence.
+
+| Area                                       | Status           | Evidence                                                                                                                                   |
+| ------------------------------------------ | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| Dependency installation and lockfile       | **VERIFIED**     | `npm install` completed successfully after the reviewed dependency upgrades and `deepmerge-ts` override.                                   |
+| High-severity dependency audit             | **VERIFIED**     | `npm audit --audit-level=high` reported `found 0 vulnerabilities`.                                                                         |
+| Prisma client generation                   | **VERIFIED**     | `npx prisma generate` completed with Prisma 6.19.3.                                                                                        |
+| Prisma schema validation                   | **VERIFIED**     | `DATABASE_URL=... npx prisma validate` reported the schema is valid.                                                                       |
+| Formatting and lint                        | **VERIFIED**     | `npm run format:check` and `npm run lint` passed.                                                                                          |
+| Backend and frontend automated tests       | **VERIFIED**     | `npm test` passed: 4 backend tests and 4 frontend API tests.                                                                               |
+| Frontend production build                  | **VERIFIED**     | `npm run build` passed with Vite 8.3.1.                                                                                                    |
+| Local frontend/API smoke test              | **VERIFIED**     | Frontend returned HTTP 200 on port 5173; backend `/api/ping` returned HTTP 200 on port 4000.                                               |
+| Git diff integrity                         | **VERIFIED**     | `git diff --check` passed.                                                                                                                 |
+| Real PostgreSQL migration deployment       | **BLOCKED**      | No disposable PostgreSQL instance was available in the execution environment; `prisma migrate deploy` was not run against a real database. |
+| Real Supabase authentication               | **BLOCKED**      | No configured runtime Supabase environment was available for signup, login, JWKS, session restoration, or logout verification.             |
+| Restart persistence and two-user isolation | **BLOCKED**      | These require the real database and two authenticated development users.                                                                   |
+| Browser authenticated workflow             | **NOT VERIFIED** | The browser loaded in demo mode because frontend Supabase variables were not configured; authenticated CRUD was not exercised.             |
+| Remote GitHub Actions result               | **NOT VERIFIED** | Changes were not pushed and no remote workflow conclusion can be claimed.                                                                  |
+
+The current conclusion is **foundation implementation locally verified, production
+acceptance still blocked by external service and deployment evidence**. The project
+must not be represented as production-ready until the blocked items are executed
+against the intended development services and the workflow result is recorded.
+
 ## 3. Current Architecture
 
 ### Frontend

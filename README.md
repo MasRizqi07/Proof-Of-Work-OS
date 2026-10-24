@@ -81,6 +81,12 @@ timestamp. Meaningful project/task mutations also append an activity event.
 The user response includes completed-task, completed-project, and
 weekly-activity metrics. The API does not expose arbitrary database queries.
 
+The root dependency overrides `deepmerge-ts` to `8.0.2` because Prisma's
+configuration dependency otherwise resolves a vulnerable pre-8 release. This
+override is validated by the Prisma generation/validation and test gates.
+Frontend `dist` output is intentionally ignored because CI/CD builds the
+artifact from source.
+
 ## Verification and CI
 
 Run the same mandatory gates locally:
