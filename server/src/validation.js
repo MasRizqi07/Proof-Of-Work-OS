@@ -1,6 +1,7 @@
 const { z } = require('zod');
 
 const id = z.string().uuid();
+
 const projectCreate = z
   .object({
     name: z.string().trim().min(1).max(120),
@@ -8,12 +9,14 @@ const projectCreate = z
     status: z.enum(['active', 'paused', 'completed']).default('active'),
   })
   .strict();
+
 const projectUpdate = projectCreate
   .partial()
   .strict()
   .refine((value) => Object.keys(value).length > 0, {
     message: 'At least one field is required',
   });
+
 const taskCreate = z
   .object({
     title: z.string().trim().min(1).max(200),
@@ -27,8 +30,20 @@ const taskCreate = z
     projectId: id.nullable().optional(),
   })
   .strict();
+
 const taskUpdate = taskCreate
   .partial()
+  .strict()
+  .refine((value) => Object.keys(value).length > 0, {
+    message: 'At least one field is required',
+  });
+
+const profileUpdate = z
+  .object({
+    bio: z.string().trim().max(500).nullable().optional(),
+    focus: z.string().trim().max(200).nullable().optional(),
+    name: z.string().trim().min(1).max(100).optional(),
+  })
   .strict()
   .refine((value) => Object.keys(value).length > 0, {
     message: 'At least one field is required',
@@ -56,8 +71,6 @@ module.exports = {
   projectUpdate,
   taskCreate,
   taskUpdate,
+  profileUpdate,
   parse,
-  // Backwards-compatible aliases for consumers of the initial foundation.
-  projectInput: projectCreate,
-  taskInput: taskCreate,
 };

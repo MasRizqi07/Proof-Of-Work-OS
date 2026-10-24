@@ -1,4 +1,9 @@
 const { PrismaClient } = require('@prisma/client');
 
 const prisma = new PrismaClient();
-module.exports = { prisma };
+
+async function disconnect() {
+  await prisma.$disconnect();
+}
+
+module.exports = { prisma, disconnect };
