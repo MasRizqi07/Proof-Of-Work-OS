@@ -18,6 +18,11 @@ const priorityToDb = {
   urgent: 'URGENT',
 };
 
+const evidenceKindToDb = {
+  url: 'URL',
+  note: 'NOTE',
+};
+
 const dbToStatus = {
   TODO: 'todo',
   IN_PROGRESS: 'in-progress',
@@ -38,12 +43,29 @@ const dbToProjectStatus = {
   COMPLETED: 'completed',
 };
 
-const taskForApi = (task) =>
-  task && {
-    ...task,
+const dbToEvidenceKind = {
+  URL: 'url',
+  NOTE: 'note',
+};
+
+const taskForApi = (task) => {
+  if (!task) return null;
+  const proofCount =
+    task._count?.evidence ?? (task.evidence ? task.evidence.length : 0);
+  const rest = { ...task };
+  delete rest._count;
+  return {
+    ...rest,
     status: dbToStatus[task.status] || task.status,
     priority: dbToPriority[task.priority] || task.priority,
+    proofCount,
+    hasProof: proofCount > 0,
+    overdue:
+      Boolean(task.dueDate) &&
+      ['TODO', 'IN_PROGRESS'].includes(task.status) &&
+      new Date(task.dueDate) < new Date(),
   };
+};
 
 const projectForApi = (project) =>
   project && {
@@ -51,13 +73,23 @@ const projectForApi = (project) =>
     status: dbToProjectStatus[project.status] || project.status,
   };
 
+const evidenceForApi = (evidence) =>
+  evidence && {
+    ...evidence,
+    kind:
+      dbToEvidenceKind[evidence.kind] || String(evidence.kind).toLowerCase(),
+  };
+
 module.exports = {
   statusToDb,
   projectStatusToDb,
   priorityToDb,
+  evidenceKindToDb,
   dbToStatus,
   dbToPriority,
   dbToProjectStatus,
+  dbToEvidenceKind,
   taskForApi,
   projectForApi,
+  evidenceForApi,
 };

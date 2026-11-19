@@ -1,7 +1,13 @@
 const { z } = require('zod');
 const { asyncHandler } = require('../middleware/asyncHandler');
 const { errorResponse } = require('../middleware/errors');
-const { id, taskCreate, taskUpdate, parse } = require('../validation');
+const {
+  id,
+  taskCreate,
+  taskUpdate,
+  hasProofQuery,
+  parse,
+} = require('../validation');
 const { statusToDb, priorityToDb, taskForApi } = require('../utils/mappers');
 const { pagination } = require('../utils/pagination');
 const { event } = require('../utils/events');
@@ -23,6 +29,14 @@ function registerTaskRoutes(router, db) {
         ...(req.query.projectId
           ? { projectId: parse(id, req.query.projectId) }
           : {}),
+        ...(req.query.hasProof !== undefined
+          ? {
+              evidence:
+                parse(hasProofQuery, req.query.hasProof) === 'true'
+                  ? { some: {} }
+                  : { none: {} },
+            }
+          : {}),
       };
       const [items, total] = await Promise.all([
         db.task.findMany({
@@ -30,6 +44,7 @@ function registerTaskRoutes(router, db) {
           skip,
           take: limit,
           orderBy: { createdAt: 'desc' },
+          include: { _count: { select: { evidence: true } } },
         }),
         db.task.count({ where }),
       ]);
@@ -48,7 +63,7 @@ function registerTaskRoutes(router, db) {
     asyncHandler(async (req, res) => {
       const task = await db.task.findFirst({
         where: { id: parse(id, req.params.taskId), userId: req.user.id },
-        include: { project: true },
+        include: { project: true, _count: { select: { evidence: true } } },
       });
       if (!task) {
         return res
@@ -143,7 +158,11 @@ function registerTaskRoutes(router, db) {
           error.code = 'PROJECT_NOT_FOUND';
           throw error;
         }
-        const updated = await tx.task.update({ where: { id: taskId }, data });
+        const updated = await tx.task.update({
+          where: { id: taskId },
+          data,
+          include: { _count: { select: { evidence: true } } },
+        });
         const lifecycleEvent =
           input.status === 'done' && current.status !== 'DONE'
             ? 'task.completed'

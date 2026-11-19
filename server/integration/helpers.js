@@ -60,7 +60,7 @@ function buildTestApp(options = {}) {
 
 async function cleanDatabase() {
   await prisma.$executeRawUnsafe(
-    'TRUNCATE "ActivityEvent","Task","Project","Profile","User" CASCADE;',
+    'TRUNCATE "ActivityEvent","Evidence","Task","Project","Profile","User" CASCADE;',
   );
 }
 

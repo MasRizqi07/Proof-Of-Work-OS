@@ -49,6 +49,44 @@ const profileUpdate = z
     message: 'At least one field is required',
   });
 
+const httpUrl = z
+  .string()
+  .trim()
+  .min(1)
+  .max(2048)
+  .refine(
+    (value) => {
+      try {
+        const protocol = new URL(value).protocol;
+        return protocol === 'http:' || protocol === 'https:';
+      } catch {
+        return false;
+      }
+    },
+    { message: 'URL must start with http:// or https://' },
+  );
+
+const evidenceLabel = z.string().trim().min(1).max(120);
+
+const evidenceCreate = z.discriminatedUnion('kind', [
+  z
+    .object({
+      kind: z.literal('url'),
+      label: evidenceLabel,
+      url: httpUrl,
+    })
+    .strict(),
+  z
+    .object({
+      kind: z.literal('note'),
+      label: evidenceLabel,
+      body: z.string().trim().min(1).max(2000),
+    })
+    .strict(),
+]);
+
+const hasProofQuery = z.enum(['true', 'false']);
+
 function parse(schema, value) {
   const result = schema.safeParse(value);
   if (!result.success) {
@@ -72,5 +110,9 @@ module.exports = {
   taskCreate,
   taskUpdate,
   profileUpdate,
+  httpUrl,
+  evidenceLabel,
+  evidenceCreate,
+  hasProofQuery,
   parse,
 };

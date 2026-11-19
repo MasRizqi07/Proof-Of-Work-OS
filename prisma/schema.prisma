@@ -39,6 +39,7 @@ model Task {
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   project     Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
   activities  ActivityEvent[]
+  evidence    Evidence[]
 
   @@index([userId, status, createdAt])
   @@index([projectId, status, createdAt])
@@ -77,6 +78,7 @@ model User {
   projects      Project[]
   tasks         Task[]
   activities    ActivityEvent[]
+  evidence      Evidence[]
 }
 
 model Profile {
@@ -104,4 +106,25 @@ model ActivityEvent {
 
   @@index([userId, occurredAt])
   @@index([userId, type, occurredAt])
+}
+
+model Evidence {
+  id        String       @id @default(uuid()) @db.Uuid
+  userId    String       @db.Uuid
+  taskId    String       @db.Uuid
+  kind      EvidenceKind
+  label     String
+  url       String?
+  body      String?
+  createdAt DateTime     @default(now())
+  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  task      Task         @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@index([taskId, createdAt])
+  @@index([userId, createdAt])
+}
+
+enum EvidenceKind {
+  URL  @map("url")
+  NOTE @map("note")
 }

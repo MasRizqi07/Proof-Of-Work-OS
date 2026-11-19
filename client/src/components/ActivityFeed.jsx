@@ -14,6 +14,8 @@ const EVENT_LABELS = {
   'project.updated': 'Updated a project',
   'project.archived': 'Archived a project',
   'profile.updated': 'Updated profile',
+  'evidence.added': 'Added evidence',
+  'evidence.removed': 'Removed evidence',
 };
 
 function formatRelativeTime(dateStr) {

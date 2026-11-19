@@ -15,6 +15,7 @@ const { prisma: defaultDb } = require('./db');
 const { registerUserRoutes } = require('./routes/user');
 const { registerProjectRoutes } = require('./routes/projects');
 const { registerTaskRoutes } = require('./routes/tasks');
+const { registerEvidenceRoutes } = require('./routes/evidence');
 
 function createApp({ db = defaultDb, authMiddleware = authRequired } = {}) {
   const app = express();
@@ -59,6 +60,7 @@ function createApp({ db = defaultDb, authMiddleware = authRequired } = {}) {
   registerUserRoutes(app, db);
   registerProjectRoutes(app, db);
   registerTaskRoutes(app, db);
+  registerEvidenceRoutes(app, db);
 
   app.use(notFound);
   app.use(errorHandler);
