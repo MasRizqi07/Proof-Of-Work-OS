@@ -110,6 +110,7 @@ function fakeDb() {
       count: async () => activities.length,
       create: async ({ data }) => activities.push(data),
     },
+    $queryRaw: async () => [{ '?column?': 1 }],
     $transaction: async (callback) => callback(db),
   };
   return { db, tasks, projects, activities };
@@ -240,6 +241,90 @@ test('task update and delete flow correctly with activity tracking', async () =>
   assert.equal(deleted.status, 204);
   assert.equal(
     activities.some((a) => a.type === 'task.deleted'),
+    true,
+  );
+});
+
+test('ready endpoint returns status ready and requestId', async () => {
+  const { db } = fakeDb();
+  const app = createApp({ db });
+  const response = await request(app).get('/api/ready');
+  assert.equal(response.status, 200);
+  assert.equal(response.body.status, 'ready');
+  assert.match(response.body.requestId, /^[0-9a-f-]{36}$/);
+});
+
+test('ready endpoint returns 503 when database is unavailable', async () => {
+  const { db } = fakeDb();
+  db.$queryRaw = async () => {
+    throw new Error('connection failure');
+  };
+  const app = createApp({ db });
+  const response = await request(app).get('/api/ready');
+  assert.equal(response.status, 503);
+  assert.equal(response.body.error.code, 'SERVICE_UNAVAILABLE');
+  assert.equal(response.body.error.message, 'Database unavailable');
+  assert.match(response.body.requestId, /^[0-9a-f-]{36}$/);
+});
+
+test('pagination rejects invalid page and limit with 400', async () => {
+  const { db } = fakeDb();
+  const app = createApp({ db, authMiddleware: auth() });
+
+  for (const query of [
+    'page=abc',
+    'limit=0',
+    'limit=101',
+    'page=0',
+    'page=1&page=2',
+  ]) {
+    const res = await request(app)
+      .get(`/api/tasks?${query}`)
+      .set('Authorization', 'Bearer valid');
+    assert.equal(res.status, 400, `Expected 400 for query ${query}`);
+    assert.equal(res.body.error.code, 'VALIDATION_ERROR');
+  }
+});
+
+test('provisionUser failure returns 503 SERVICE_UNAVAILABLE', async () => {
+  const brokenAuth = createAuthMiddleware({
+    verifyToken: async () => ({ sub: USER, role: 'authenticated' }),
+    provisionUser: async () => {
+      throw new Error('Database connection failed during provisioning');
+    },
+  });
+  const app = createApp({ authMiddleware: brokenAuth });
+  const response = await request(app)
+    .get('/api/tasks')
+    .set('Authorization', 'Bearer valid');
+  assert.equal(response.status, 503);
+  assert.equal(response.body.error.code, 'SERVICE_UNAVAILABLE');
+  assert.equal(response.body.error.message, 'Service temporarily unavailable');
+  assert.match(response.body.requestId, /^[0-9a-f-]{36}$/);
+});
+
+test('rate limit handler returns structured 429 error shape', async () => {
+  const { errorResponse } = require('../src/middleware/errors');
+  const req = { id: 'test-req-id' };
+  const errorObj = errorResponse(req, 'RATE_LIMITED', 'Too many requests');
+  assert.deepEqual(errorObj, {
+    error: { code: 'RATE_LIMITED', message: 'Too many requests' },
+    requestId: 'test-req-id',
+  });
+});
+
+test('production config requires explicit CORS_ORIGIN', () => {
+  const { schema } = require('../src/config/env');
+  const result = schema.safeParse({
+    NODE_ENV: 'production',
+    DATABASE_URL: 'postgresql://valid.db/test',
+    SUPABASE_URL: 'https://valid.supabase.co',
+  });
+  assert.equal(result.success, false);
+  assert.equal(
+    result.error.issues.some((i) =>
+      i.message.includes('CORS_ORIGIN must be explicitly set'),
+    ),
     true,
   );
 });

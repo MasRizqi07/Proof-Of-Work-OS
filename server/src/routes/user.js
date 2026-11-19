@@ -1,6 +1,7 @@
 const { asyncHandler } = require('../middleware/asyncHandler');
 const { errorResponse } = require('../middleware/errors');
 const { profileUpdate, parse } = require('../validation');
+const { pagination } = require('../utils/pagination');
 const { event } = require('../utils/events');
 
 function registerUserRoutes(router, db) {
@@ -92,12 +93,7 @@ function registerUserRoutes(router, db) {
   router.get(
     '/api/activities',
     asyncHandler(async (req, res) => {
-      const page = Math.max(1, Number.parseInt(req.query.page || '1', 10));
-      const limit = Math.min(
-        50,
-        Math.max(1, Number.parseInt(req.query.limit || '20', 10)),
-      );
-      const skip = (page - 1) * limit;
+      const { page, limit, skip } = pagination(req);
 
       const where = { userId: req.user.id };
 

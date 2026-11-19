@@ -63,11 +63,13 @@ function registerTaskRoutes(router, db) {
     '/api/tasks',
     asyncHandler(async (req, res) => {
       const input = parse(taskCreate, req.body);
+      const isDone = input.status === 'done';
       const data = {
         ...input,
         status: statusToDb[input.status],
         priority: priorityToDb[input.priority],
-        completedAt: input.status === 'done' ? new Date() : null,
+        completedAt: isDone ? new Date() : null,
+        progress: isDone ? 100 : input.progress,
       };
       const task = await db.$transaction(async (tx) => {
         if (
@@ -105,17 +107,27 @@ function registerTaskRoutes(router, db) {
     asyncHandler(async (req, res) => {
       const taskId = parse(id, req.params.taskId);
       const input = parse(taskUpdate, req.body);
-      const data = { ...input };
-      if (input.status) data.status = statusToDb[input.status];
-      if (input.priority) data.priority = priorityToDb[input.priority];
-      if (input.status === 'done') data.completedAt = new Date();
-      if (input.status && input.status !== 'done') data.completedAt = null;
 
       const task = await db.$transaction(async (tx) => {
         const current = await tx.task.findFirst({
           where: { id: taskId, userId: req.user.id },
         });
         if (!current) return null;
+
+        const resultingStatus = input.status
+          ? statusToDb[input.status]
+          : current.status;
+        const wasDone = current.status === 'DONE';
+        const data = { ...input };
+        if (input.status) data.status = statusToDb[input.status];
+        if (input.priority) data.priority = priorityToDb[input.priority];
+        if (resultingStatus === 'DONE') {
+          if (!wasDone) data.completedAt = new Date();
+          data.progress = 100;
+        } else {
+          data.completedAt = null;
+        }
+
         if (
           data.projectId &&
           !(await tx.project.findFirst({

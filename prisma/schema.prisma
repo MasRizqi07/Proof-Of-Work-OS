@@ -42,6 +42,7 @@ model Task {
 
   @@index([userId, status, createdAt])
   @@index([projectId, status, createdAt])
+  @@index([userId, completedAt])
 }
 
 enum TaskStatus {
@@ -102,4 +103,5 @@ model ActivityEvent {
   task       Task?     @relation(fields: [taskId], references: [id], onDelete: SetNull)
 
   @@index([userId, occurredAt])
+  @@index([userId, type, occurredAt])
 }
