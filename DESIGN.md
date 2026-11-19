@@ -1,10 +1,10 @@
 # DESIGN — Proof of Work OS
 
-| Field | Nilai |
-| :--- | :--- |
-| Versi | 1.0 (LOCKED) |
-| Tanggal | 2026-11-19 |
-| Authority | `docs/PRD.md` mengalahkan dokumen ini untuk scope. Dokumen ini adalah sumber kebenaran untuk token, visual, dan perilaku antarmuka. |
+| Field          | Nilai                                                                                                                                          |
+| :------------- | :--------------------------------------------------------------------------------------------------------------------------------------------- |
+| Versi          | 1.0 (LOCKED)                                                                                                                                   |
+| Tanggal        | 2026-11-19                                                                                                                                     |
+| Authority      | `docs/PRD.md` mengalahkan dokumen ini untuk scope. Dokumen ini adalah sumber kebenaran untuk token, visual, dan perilaku antarmuka.            |
 | Batasan teknis | CSS biasa (tanpa Tailwind, shadcn, atau framework UI). Tanpa library ikon, chart, atau tanggal. Server tetap tidak tersentuh oleh dokumen ini. |
 
 ---
@@ -23,11 +23,11 @@
 
 Tiga tingkat. Komponen tidak boleh merujuk nilai warna mentah.
 
-| Tingkat | Isi | Boleh dirujuk dari |
-| :--- | :--- | :--- |
-| 1. Primitive (`--ref-*`) | Nilai mentah: hex, ukuran | hanya Tingkat 2 |
-| 2. Semantic (`--color-*`, `--space-*`, `--radius-*`, `--text-*`) | Berbasis tujuan, berganti per tema | komponen dan Tingkat 3 |
-| 3. Component (`--button-*`, `--card-*`, `--input-*`, `--badge-*`, `--chart-*`) | Pemakaian spesifik, hanya merujuk Tingkat 2 | stylesheet komponen |
+| Tingkat                                                                        | Isi                                         | Boleh dirujuk dari     |
+| :----------------------------------------------------------------------------- | :------------------------------------------ | :--------------------- |
+| 1. Primitive (`--ref-*`)                                                       | Nilai mentah: hex, ukuran                   | hanya Tingkat 2        |
+| 2. Semantic (`--color-*`, `--space-*`, `--radius-*`, `--text-*`)               | Berbasis tujuan, berganti per tema          | komponen dan Tingkat 3 |
+| 3. Component (`--button-*`, `--card-*`, `--input-*`, `--badge-*`, `--chart-*`) | Pemakaian spesifik, hanya merujuk Tingkat 2 | stylesheet komponen    |
 
 Struktur file:
 
@@ -42,23 +42,23 @@ client/src/styles/
 
 ### 2.1 Pemetaan token lama ke token baru
 
-| Token lama (`App.css`) | Token baru | Catatan |
-| :--- | :--- | :--- |
-| `--color-primary` | `--color-accent` | hanya untuk link, fokus, dan state terpilih |
-| `--color-primary-hover` | `--color-accent-hover` | |
-| `--color-text` | `--color-text` | |
-| `--color-text-secondary`, `--color-text-dark-muted` | `--color-text-secondary` | dua token lama digabung |
-| `--color-text-muted` | `--color-text-muted` | |
-| `--color-text-button` | `--color-text` | |
-| `--color-error` | `--color-danger-fg` | |
-| `--color-bg`, `--color-surface` | `--color-bg`, `--color-surface` | |
-| `--color-border` | `--color-border` | dekoratif saja |
-| `--color-input-border` | `--color-border-control` | wajib 3:1 |
-| `--color-input-bg` | `--color-surface` | |
-| `--color-shadow` | `--shadow-1`, `--shadow-2` | |
-| `--color-ghost-bg`, `--color-ghost-hover` | `--color-surface-sunken`, `--color-surface-sunken-hover` | |
-| `--color-status-*` | `--badge-*` (Tingkat 3) | lihat bagian 6.4 |
-| `--color-demo-bg`, `--color-demo-text` | dihapus | demo mode di-Cut (PRD) |
+| Token lama (`App.css`)                              | Token baru                                               | Catatan                                     |
+| :-------------------------------------------------- | :------------------------------------------------------- | :------------------------------------------ |
+| `--color-primary`                                   | `--color-accent`                                         | hanya untuk link, fokus, dan state terpilih |
+| `--color-primary-hover`                             | `--color-accent-hover`                                   |                                             |
+| `--color-text`                                      | `--color-text`                                           |                                             |
+| `--color-text-secondary`, `--color-text-dark-muted` | `--color-text-secondary`                                 | dua token lama digabung                     |
+| `--color-text-muted`                                | `--color-text-muted`                                     |                                             |
+| `--color-text-button`                               | `--color-text`                                           |                                             |
+| `--color-error`                                     | `--color-danger-fg`                                      |                                             |
+| `--color-bg`, `--color-surface`                     | `--color-bg`, `--color-surface`                          |                                             |
+| `--color-border`                                    | `--color-border`                                         | dekoratif saja                              |
+| `--color-input-border`                              | `--color-border-control`                                 | wajib 3:1                                   |
+| `--color-input-bg`                                  | `--color-surface`                                        |                                             |
+| `--color-shadow`                                    | `--shadow-1`, `--shadow-2`                               |                                             |
+| `--color-ghost-bg`, `--color-ghost-hover`           | `--color-surface-sunken`, `--color-surface-sunken-hover` |                                             |
+| `--color-status-*`                                  | `--badge-*` (Tingkat 3)                                  | lihat bagian 6.4                            |
+| `--color-demo-bg`, `--color-demo-text`              | dihapus                                                  | demo mode di-Cut (PRD)                      |
 
 ### 2.2 Tingkat 1: primitive
 
@@ -198,19 +198,32 @@ Skala non-warna:
 
 ```css
 :root {
-  --space-1: 0.25rem;  --space-2: 0.5rem;   --space-3: 0.75rem;
-  --space-4: 1rem;     --space-5: 1.25rem;  --space-6: 1.5rem;
-  --space-8: 2rem;     --space-10: 2.5rem;  --space-12: 3rem;
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
 
   --radius-control: 6px;
   --radius-card: 12px;
   --radius-pill: 999px;
 
-  --font-sans: 'IBM Plex Sans', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --font-mono: 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  --font-sans:
+    'IBM Plex Sans', ui-sans-serif, system-ui, -apple-system, 'Segoe UI',
+    sans-serif;
+  --font-mono:
+    'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
 
-  --text-xs: 0.75rem;   --text-sm: 0.875rem;  --text-base: 1rem;
-  --text-lg: 1.125rem;  --text-xl: 1.375rem;  --text-2xl: 1.75rem;
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.375rem;
+  --text-2xl: 1.75rem;
   --text-display: clamp(2rem, 5vw, 3.25rem);
 
   --duration-fast: 120ms;
@@ -233,7 +246,9 @@ Skala non-warna:
   color: var(--button-fg);
   border-radius: var(--radius-control);
 }
-.button:hover:not(:disabled) { background: var(--button-bg-hover); }
+.button:hover:not(:disabled) {
+  background: var(--button-bg-hover);
+}
 ```
 
 ## 3. Kontras (dihitung, bukan perkiraan)
@@ -242,38 +257,39 @@ Rumus: luminansi relatif WCAG 2.x. Setiap baris dihitung ulang dengan skrip dan 
 
 Teks (ambang 4.5:1, WCAG 1.4.3):
 
-| Pasangan | Token (fg / bg) | Ambang | Terang | Gelap |
-| :--- | :--- | :---: | :---: | :---: |
-| Teks utama | `text` / `bg` | 4.5:1 | 15.69 | 14.96 |
-| Teks utama | `text` / `surface` | 4.5:1 | 16.95 | 13.80 |
-| Teks sekunder | `text2` / `bg` | 4.5:1 | 6.98 | 8.45 |
-| Teks sekunder | `text2` / `surface` | 4.5:1 | 7.54 | 7.79 |
-| Teks muted | `muted` / `surface` | 4.5:1 | 5.62 | 5.86 |
-| Link / aksen | `accent` / `surface` | 4.5:1 | 7.51 | 8.10 |
-| Link / aksen | `accent` / `bg` | 4.5:1 | 6.95 | 8.79 |
-| Link hover | `accent_hover` / `surface` | 4.5:1 | 9.54 | 10.11 |
-| Tombol primer | `btn_fg` / `btn_bg` | 4.5:1 | 15.69 | 14.96 |
-| Tombol primer (hover) | `btn_fg` / `btn_hover` | 4.5:1 | 11.68 | 12.25 |
-| Lencana With proof | `proof_fg` / `proof_bg` | 4.5:1 | 6.45 | 8.31 |
-| Lencana No proof | `noproof_fg` / `noproof_bg` | 4.5:1 | 5.77 | 7.91 |
-| Pesan bahaya (di surface) | `danger_fg` / `surface` | 4.5:1 | 6.47 | 8.25 |
-| Lencana bahaya | `danger_fg` / `danger_bg` | 4.5:1 | 5.55 | 7.78 |
-| Lencana in-progress | `accent` / `accent_subtle` | 4.5:1 | 6.26 | 7.44 |
-| Lencana todo | `text2` / `sunken` | 4.5:1 | 6.39 | 8.81 |
-| Lencana cancelled | `muted` / `sunken` | 4.5:1 | 4.76 | 6.62 |
+| Pasangan                  | Token (fg / bg)             | Ambang | Terang | Gelap |
+| :------------------------ | :-------------------------- | :----: | :----: | :---: |
+| Teks utama                | `text` / `bg`               | 4.5:1  | 15.69  | 14.96 |
+| Teks utama                | `text` / `surface`          | 4.5:1  | 16.95  | 13.80 |
+| Teks sekunder             | `text2` / `bg`              | 4.5:1  |  6.98  | 8.45  |
+| Teks sekunder             | `text2` / `surface`         | 4.5:1  |  7.54  | 7.79  |
+| Teks muted                | `muted` / `surface`         | 4.5:1  |  5.62  | 5.86  |
+| Link / aksen              | `accent` / `surface`        | 4.5:1  |  7.51  | 8.10  |
+| Link / aksen              | `accent` / `bg`             | 4.5:1  |  6.95  | 8.79  |
+| Link hover                | `accent_hover` / `surface`  | 4.5:1  |  9.54  | 10.11 |
+| Tombol primer             | `btn_fg` / `btn_bg`         | 4.5:1  | 15.69  | 14.96 |
+| Tombol primer (hover)     | `btn_fg` / `btn_hover`      | 4.5:1  | 11.68  | 12.25 |
+| Lencana With proof        | `proof_fg` / `proof_bg`     | 4.5:1  |  6.45  | 8.31  |
+| Lencana No proof          | `noproof_fg` / `noproof_bg` | 4.5:1  |  5.77  | 7.91  |
+| Pesan bahaya (di surface) | `danger_fg` / `surface`     | 4.5:1  |  6.47  | 8.25  |
+| Lencana bahaya            | `danger_fg` / `danger_bg`   | 4.5:1  |  5.55  | 7.78  |
+| Lencana in-progress       | `accent` / `accent_subtle`  | 4.5:1  |  6.26  | 7.44  |
+| Lencana todo              | `text2` / `sunken`          | 4.5:1  |  6.39  | 8.81  |
+| Lencana cancelled         | `muted` / `sunken`          | 4.5:1  |  4.76  | 6.62  |
 
 Non-teks (ambang 3:1, WCAG 1.4.11):
 
-| Pasangan | Token (fg / bg) | Ambang | Terang | Gelap |
-| :--- | :--- | :---: | :---: | :---: |
-| Border kontrol (input, select) vs surface | `control` / `surface` | 3.0:1 | 3.92 | 3.83 |
-| Border kontrol vs bg | `control` / `bg` | 3.0:1 | 3.63 | 4.16 |
-| Cincin fokus vs bg | `accent` / `bg` | 3.0:1 | 6.95 | 8.79 |
-| Cincin fokus vs surface | `accent` / `surface` | 3.0:1 | 7.51 | 8.10 |
-| Batang chart "with proof" vs surface | `proof_fg` / `surface` | 3.0:1 | 7.43 | 9.86 |
-| Batang chart "no proof" vs surface | `noproof_fg` / `surface` | 3.0:1 | 6.70 | 9.20 |
+| Pasangan                                  | Token (fg / bg)          | Ambang | Terang | Gelap |
+| :---------------------------------------- | :----------------------- | :----: | :----: | :---: |
+| Border kontrol (input, select) vs surface | `control` / `surface`    | 3.0:1  |  3.92  | 3.83  |
+| Border kontrol vs bg                      | `control` / `bg`         | 3.0:1  |  3.63  | 4.16  |
+| Cincin fokus vs bg                        | `accent` / `bg`          | 3.0:1  |  6.95  | 8.79  |
+| Cincin fokus vs surface                   | `accent` / `surface`     | 3.0:1  |  7.51  | 8.10  |
+| Batang chart "with proof" vs surface      | `proof_fg` / `surface`   | 3.0:1  |  7.43  | 9.86  |
+| Batang chart "no proof" vs surface        | `noproof_fg` / `surface` | 3.0:1  |  6.70  | 9.20  |
 
 Catatan:
+
 - `--color-border` (dekoratif, pembatas kartu) sengaja **tidak** dikenai 3:1. Pembatas kontrol yang bisa dioperasikan memakai `--color-border-control`.
 - Teks pada tombol primer memakai `--color-btn-fg`, bukan putih murni.
 - Hasil di atas menjamin pasangan token, bukan tampilan akhir. Agent tetap memeriksa halaman nyata (bagian 11).
@@ -298,8 +314,13 @@ Taruh skrip ini di `client/index.html`, di dalam `head`, **sebelum** tag `link` 
   (function () {
     try {
       var saved = localStorage.getItem('theme');
-      var dark = saved ? saved === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
-      document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+      var dark = saved
+        ? saved === 'dark'
+        : window.matchMedia('(prefers-color-scheme: dark)').matches;
+      document.documentElement.setAttribute(
+        'data-theme',
+        dark ? 'dark' : 'light',
+      );
     } catch (e) {
       document.documentElement.setAttribute('data-theme', 'light');
     }
@@ -313,15 +334,16 @@ Toggle (`ThemeToggle.jsx`) mengganti atribut `data-theme` tanpa reload, menulis 
 
 ## 5. Tipografi
 
-| Peran | Font | Bobot | Ukuran | Dipakai untuk |
-| :--- | :--- | :---: | :--- | :--- |
-| Display | IBM Plex Sans | 600 | `--text-display`, line-height 1.05, letter-spacing -0.02em | `h1` saja |
-| Heading | IBM Plex Sans | 600 | `--text-xl`, `--text-lg` | `h2`, `h3` |
-| Body | IBM Plex Sans | 400 | `--text-base`, line-height 1.5 | semua teks biasa |
-| Label, UI | IBM Plex Sans | 500 | `--text-sm` | label form, tombol, lencana |
-| Data | IBM Plex Mono | 400, 500 | `--text-sm` | URL bukti, isi catatan, timestamp, ID, angka statistik |
+| Peran     | Font          |  Bobot   | Ukuran                                                     | Dipakai untuk                                          |
+| :-------- | :------------ | :------: | :--------------------------------------------------------- | :----------------------------------------------------- |
+| Display   | IBM Plex Sans |   600    | `--text-display`, line-height 1.05, letter-spacing -0.02em | `h1` saja                                              |
+| Heading   | IBM Plex Sans |   600    | `--text-xl`, `--text-lg`                                   | `h2`, `h3`                                             |
+| Body      | IBM Plex Sans |   400    | `--text-base`, line-height 1.5                             | semua teks biasa                                       |
+| Label, UI | IBM Plex Sans |   500    | `--text-sm`                                                | label form, tombol, lencana                            |
+| Data      | IBM Plex Mono | 400, 500 | `--text-sm`                                                | URL bukti, isi catatan, timestamp, ID, angka statistik |
 
 Aturan:
+
 - Ukuran font input minimal 16px (mencegah zoom otomatis di iOS).
 - Tinggi baris badan minimal 1.5. Lebar baris teks panjang maksimal 70 karakter.
 - Tabel angka memakai `font-variant-numeric: tabular-nums`.
@@ -341,12 +363,12 @@ Semua komponen punya state: default, hover, `:focus-visible`, active, disabled, 
 
 ### 6.2 Tombol
 
-| Varian | Latar | Teks | Border | Dipakai untuk |
-| :--- | :--- | :--- | :--- | :--- |
-| Primary | `--color-btn-bg` | `--color-btn-fg` | tidak ada | satu aksi utama per area |
-| Secondary | `--color-surface` | `--color-text` | 1px `--color-border-control` | aksi biasa |
-| Ghost | transparan | `--color-text-secondary` | tidak ada | aksi tersier |
-| Danger | `--color-surface` | `--color-danger-fg` | 1px `--color-danger-fg` | hapus (di dialog konfirmasi) |
+| Varian    | Latar             | Teks                     | Border                       | Dipakai untuk                |
+| :-------- | :---------------- | :----------------------- | :--------------------------- | :--------------------------- |
+| Primary   | `--color-btn-bg`  | `--color-btn-fg`         | tidak ada                    | satu aksi utama per area     |
+| Secondary | `--color-surface` | `--color-text`           | 1px `--color-border-control` | aksi biasa                   |
+| Ghost     | transparan        | `--color-text-secondary` | tidak ada                    | aksi tersier                 |
+| Danger    | `--color-surface` | `--color-danger-fg`      | 1px `--color-danger-fg`      | hapus (di dialog konfirmasi) |
 
 Saat `disabled` karena request berjalan, teks berubah ("Adding…") dan `aria-busy="true"`. Tombol tidak berubah lebar (cegah layout shift).
 
@@ -358,18 +380,18 @@ Label selalu terlihat di atas kontrol dan terhubung dengan `for`/`id`. Placehold
 
 Status task (teks selalu tampil, ikon pelengkap):
 
-| Status | Tampilan |
-| :--- | :--- |
-| `todo` | latar `--color-surface-sunken`, teks `--color-text-secondary`, ikon lingkaran kosong |
-| `in-progress` | latar `--color-accent-subtle`, teks `--color-accent`, ikon jam |
-| `done` | latar `--color-btn-bg`, teks `--color-btn-fg`, ikon centang |
-| `cancelled` | latar `--color-surface-sunken`, teks `--color-text-muted`, teks dicoret, ikon x |
+| Status        | Tampilan                                                                             |
+| :------------ | :----------------------------------------------------------------------------------- |
+| `todo`        | latar `--color-surface-sunken`, teks `--color-text-secondary`, ikon lingkaran kosong |
+| `in-progress` | latar `--color-accent-subtle`, teks `--color-accent`, ikon jam                       |
+| `done`        | latar `--color-btn-bg`, teks `--color-btn-fg`, ikon centang                          |
+| `cancelled`   | latar `--color-surface-sunken`, teks `--color-text-muted`, teks dicoret, ikon x      |
 
 Lencana bukti (hanya pada task `done`):
 
-| Kondisi | Tampilan |
-| :--- | :--- |
-| `hasProof = true` | latar `--color-proof-bg`, teks `--color-proof-fg`, ikon centang, teks "With proof · 2" (angka = `proofCount`, huruf monospace) |
+| Kondisi            | Tampilan                                                                                                                                |
+| :----------------- | :-------------------------------------------------------------------------------------------------------------------------------------- |
+| `hasProof = true`  | latar `--color-proof-bg`, teks `--color-proof-fg`, ikon centang, teks "With proof · 2" (angka = `proofCount`, huruf monospace)          |
 | `hasProof = false` | latar `--color-noproof-bg`, teks `--color-noproof-fg`, **border putus-putus** 1px `--color-noproof-fg`, ikon alert, teks "No proof yet" |
 
 Task non-`done` dengan `proofCount > 0` menampilkan teks netral "2 proof" tanpa warna hijau. Hijau hanya muncul bila ada bukti dan task sudah selesai.
@@ -383,6 +405,7 @@ Isi: judul (`h3`), lencana status, lencana bukti, prioritas (teks), due date (mo
 ### 6.6 Panel detail task
 
 Elemen `dialog` bawaan HTML dengan `showModal()` (fokus terjebak dan Esc menutup tanpa library).
+
 - Lebar ≤ 767 px: lembar penuh, maksimal tinggi `92dvh`, menempel di bawah.
 - Lebar ≥ 768 px: panel kanan, lebar 440 px, tinggi penuh.
 - Isi berurutan: judul dan form edit, lalu bagian "Proof" (daftar evidence, form tambah), lalu zona bahaya (hapus).
@@ -400,6 +423,7 @@ Empat kartu: "Proof rate" (persen, `—` bila `null`), "Current streak" (minggu)
 ### 6.9 Grafik proof mingguan
 
 Grafik batang tersusun 8 minggu, dibuat dari elemen HTML atau SVG inline tanpa library.
+
 - Dua seri: "With proof" (`--color-proof-fg`, isi solid) dan "No proof" (`--color-noproof-fg`, **pola garis diagonal** agar berbeda tanpa warna).
 - Sumbu: label minggu `DD MMM` (format lewat `Intl.DateTimeFormat`, tanpa library tanggal). Skala dimulai dari 0.
 - Alternatif teks wajib: `figure` dengan `figcaption` yang merangkum ("8 weeks: 9 with proof, 3 without"), plus elemen `details` berjudul "Show data table" berisi `table` lengkap.
@@ -421,15 +445,16 @@ Elemen `dialog`. Judul "Delete this task?". Isi menyebut bahwa evidence ikut ter
 
 Mobile-first. Breakpoint (`min-width`): 480, 768, 1024, 1440. Dasar tampilan adalah 320 px.
 
-| Lebar | Layout |
-| :--- | :--- |
-| 320–479 | satu kolom. Statistik 1 kolom. Form task bertumpuk. Panel detail = lembar bawah. |
-| 480–767 | satu kolom. Statistik 2 kolom. |
-| 768–1023 | satu kolom lebar penuh. Panel detail = panel kanan 440 px. Statistik 4 kolom. |
-| 1024–1439 | dua kolom: utama `1fr`, sidebar `340px`. |
-| ≥ 1440 | wadah maksimal 1180 px di tengah. |
+| Lebar     | Layout                                                                           |
+| :-------- | :------------------------------------------------------------------------------- |
+| 320–479   | satu kolom. Statistik 1 kolom. Form task bertumpuk. Panel detail = lembar bawah. |
+| 480–767   | satu kolom. Statistik 2 kolom.                                                   |
+| 768–1023  | satu kolom lebar penuh. Panel detail = panel kanan 440 px. Statistik 4 kolom.    |
+| 1024–1439 | dua kolom: utama `1fr`, sidebar `340px`.                                         |
+| ≥ 1440    | wadah maksimal 1180 px di tengah.                                                |
 
 Aturan:
+
 - Tidak ada `width` tetap dalam piksel pada elemen konten (kecuali panel detail dan sidebar di atas).
 - Gambar dan elemen media `max-width: 100%`. Teks panjang (URL bukti) memakai `overflow-wrap: anywhere`.
 - Konten lebar (tabel data chart) di-scroll di dalam wadahnya sendiri (`overflow-x: auto`), bukan di `body`.
@@ -456,14 +481,14 @@ Mobile 320: header, statistik, grafik, form, daftar task, project, aktivitas, da
 
 ## 8. Layar dan state yang harus ada
 
-| Layar atau state | Isi |
-| :--- | :--- |
-| Signed out | judul, satu kalimat nilai produk, form sign in dan sign up |
-| Configuration required | daftar nama variabel `VITE_*` yang kosong. Tanpa panggilan API. |
-| Dashboard | statistik, grafik, form dan daftar task, project, aktivitas |
-| Detail task | dialog (bagian 6.6) |
-| Konfirmasi hapus | dialog (bagian 6.11) |
-| Loading, empty, error, offline | bagian 6.10, untuk setiap daftar dan panel |
+| Layar atau state               | Isi                                                             |
+| :----------------------------- | :-------------------------------------------------------------- |
+| Signed out                     | judul, satu kalimat nilai produk, form sign in dan sign up      |
+| Configuration required         | daftar nama variabel `VITE_*` yang kosong. Tanpa panggilan API. |
+| Dashboard                      | statistik, grafik, form dan daftar task, project, aktivitas     |
+| Detail task                    | dialog (bagian 6.6)                                             |
+| Konfirmasi hapus               | dialog (bagian 6.11)                                            |
+| Loading, empty, error, offline | bagian 6.10, untuk setiap daftar dan panel                      |
 
 ## 9. Gerak
 
@@ -494,7 +519,7 @@ Di bawah `@media (prefers-reduced-motion: reduce)` semua animasi dan transisi di
 Pada lebar 320, 480, 768, 1024, 1440, 1920, di kedua tema, jalankan di konsol browser:
 
 ```js
-document.documentElement.scrollWidth <= document.documentElement.clientWidth
+document.documentElement.scrollWidth <= document.documentElement.clientWidth;
 ```
 
 Hasil yang diharapkan: `true` pada semua lebar. Lampirkan hasilnya, bukan ringkasan. Periksa juga zoom 200% pada 1280 px (WCAG 1.4.10 reflow).

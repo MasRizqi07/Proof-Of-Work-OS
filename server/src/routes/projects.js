@@ -160,4 +160,3 @@ function registerProjectRoutes(router, db) {
 }
 
 module.exports = { registerProjectRoutes };
-

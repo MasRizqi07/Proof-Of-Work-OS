@@ -3,4 +3,3 @@ function event(type, userId, ids, metadata) {
 }
 
 module.exports = { event };
-

@@ -6,4 +6,3 @@ export default function StateMessage({ children, action }) {
     </div>
   );
 }
-

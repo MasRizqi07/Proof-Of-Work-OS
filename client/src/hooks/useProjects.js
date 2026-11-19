@@ -36,4 +36,3 @@ export function useProjects(enabled) {
 
   return { projectsQuery, createProject, updateProject, deleteProject };
 }
-

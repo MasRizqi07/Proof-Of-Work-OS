@@ -8,4 +8,3 @@ function pagination(req) {
 }
 
 module.exports = { pagination };
-

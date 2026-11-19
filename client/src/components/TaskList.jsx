@@ -48,4 +48,3 @@ export default function TaskList({ tasks, onDelete, onUpdate, isDeleting }) {
     </div>
   );
 }
-
