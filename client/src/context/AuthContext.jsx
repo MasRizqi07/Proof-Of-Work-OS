@@ -20,7 +20,6 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     if (!supabase) {
-      setAuthLoading(false);
       return undefined;
     }
     let previousSession = null;

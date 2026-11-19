@@ -64,6 +64,8 @@ The authenticated API currently exposes:
 | Method                   | Route                      | Purpose                                   |
 | ------------------------ | -------------------------- | ----------------------------------------- |
 | `GET`                    | `/api/user`                | Current user, profile, and basic metrics  |
+| `PATCH`                  | `/api/user/profile`        | Update user name, bio, and focus          |
+| `GET`                    | `/api/activities`          | Paginated user activity event feed        |
 | `GET`, `POST`            | `/api/projects`            | List or create owned projects             |
 | `GET`, `PATCH`, `DELETE` | `/api/projects/:projectId` | Read, update, or archive an owned project |
 | `GET`, `POST`            | `/api/tasks`               | List or create owned tasks                |
