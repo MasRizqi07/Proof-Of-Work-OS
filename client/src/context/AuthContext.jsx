@@ -7,6 +7,7 @@ import {
 } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
+import { registerUnauthorizedHandler } from '../lib/api';
 
 const AuthContext = createContext(null);
 
@@ -14,9 +15,24 @@ export function AuthProvider({ children }) {
   const queryClient = useQueryClient();
   const [session, setSession] = useState(null);
   const [authLoading, setAuthLoading] = useState(isSupabaseConfigured);
-  const authenticated = !isSupabaseConfigured || Boolean(session);
-  const unauthenticated =
-    isSupabaseConfigured && !authLoading && !authenticated;
+  const authenticated = Boolean(session);
+  const unauthenticated = !authLoading && !authenticated;
+
+  const signOut = useCallback(async () => {
+    try {
+      await supabase?.auth.signOut();
+    } catch (err) {
+      console.error('Sign-out failed:', err);
+    }
+    setSession(null);
+    await queryClient.cancelQueries();
+    queryClient.removeQueries();
+  }, [queryClient]);
+
+  useEffect(() => {
+    registerUnauthorizedHandler(signOut);
+    return () => registerUnauthorizedHandler(null);
+  }, [signOut]);
 
   useEffect(() => {
     if (!supabase) {
@@ -51,17 +67,6 @@ export function AuthProvider({ children }) {
       },
     );
     return () => listener?.subscription?.unsubscribe();
-  }, [queryClient]);
-
-  const signOut = useCallback(async () => {
-    try {
-      await supabase?.auth.signOut();
-    } catch (err) {
-      console.error('Sign-out failed:', err);
-    }
-    setSession(null);
-    await queryClient.cancelQueries();
-    queryClient.removeQueries();
   }, [queryClient]);
 
   return (

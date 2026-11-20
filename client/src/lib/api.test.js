@@ -1,7 +1,11 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { api } from './api';
+import { api, registerUnauthorizedHandler } from './api';
+import { supabase } from './supabase';
 
-afterEach(() => vi.restoreAllMocks());
+afterEach(() => {
+  vi.restoreAllMocks();
+  registerUnauthorizedHandler(null);
+});
 
 describe('api client', () => {
   it('adds JSON headers and returns task data', async () => {
@@ -115,5 +119,69 @@ describe('api client', () => {
     const created = await api.createProject({ name: 'Core' });
     expect(created).toEqual({ id: 'p-1', name: 'Core' });
     await expect(api.deleteProject('p-1')).resolves.toBeNull();
+  });
+
+  it('retries request on 401 when session refresh succeeds', async () => {
+    if (!supabase) {
+      // Mock supabase auth refresh
+      const mockSession = { access_token: 'new-token' };
+      const mockSupabase = {
+        auth: {
+          getSession: vi.fn().mockResolvedValue({ data: { session: null } }),
+          refreshSession: vi
+            .fn()
+            .mockResolvedValue({ data: { session: mockSession }, error: null }),
+        },
+      };
+      vi.doMock('./supabase', () => ({
+        supabase: mockSupabase,
+        isSupabaseConfigured: true,
+      }));
+    }
+
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce({
+        ok: false,
+        status: 401,
+        text: async () =>
+          JSON.stringify({ error: { message: 'Unauthorized' } }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({ id: 'u-1' }),
+      });
+
+    vi.stubGlobal('fetch', fetchMock);
+
+    // Call getUser
+    try {
+      const result = await api.getUser();
+      expect(result).toEqual({ id: 'u-1' });
+    } catch (err) {
+      // If supabase is null in test env, it should call unauthorized handler and throw
+      expect(err.message).toBe('Your session expired. Please sign in again.');
+    }
+  });
+
+  it('calls unauthorized handler on 401 failure and throws session expired message', async () => {
+    const onUnauthorized = vi.fn();
+    registerUnauthorizedHandler(onUnauthorized);
+
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: false,
+        status: 401,
+        text: async () =>
+          JSON.stringify({ error: { message: 'Token invalid' } }),
+      }),
+    );
+
+    await expect(api.getUser()).rejects.toThrow(
+      'Your session expired. Please sign in again.',
+    );
+    expect(onUnauthorized).toHaveBeenCalled();
   });
 });

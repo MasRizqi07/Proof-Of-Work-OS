@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { supabase, isSupabaseConfigured } from '../lib/supabase';
+import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 
 export default function AuthPanel() {
@@ -10,8 +10,8 @@ export default function AuthPanel() {
   const [message, setMessage] = useState('');
   const [busy, setBusy] = useState(false);
 
-  if (!isSupabaseConfigured) {
-    return <span className="demo-badge">Demo mode</span>;
+  if (!supabase) {
+    return null;
   }
 
   if (session) {
