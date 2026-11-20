@@ -7,7 +7,7 @@
     "dev": "nodemon index.js --watch .",
     "start": "node index.js",
     "test": "node --test",
-    "test:integration": "node --test --test-concurrency=1 integration/isolation.int.js integration/lifecycle.int.js integration/evidence.int.js",
+    "test:integration": "node --test --test-concurrency=1 integration/isolation.int.js integration/lifecycle.int.js integration/evidence.int.js integration/metrics.int.js",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:seed": "prisma db seed"

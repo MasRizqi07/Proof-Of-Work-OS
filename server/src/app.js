@@ -16,6 +16,7 @@ const { registerUserRoutes } = require('./routes/user');
 const { registerProjectRoutes } = require('./routes/projects');
 const { registerTaskRoutes } = require('./routes/tasks');
 const { registerEvidenceRoutes } = require('./routes/evidence');
+const { registerMetricsRoutes } = require('./routes/metrics');
 
 function createApp({ db = defaultDb, authMiddleware = authRequired } = {}) {
   const app = express();
@@ -61,6 +62,7 @@ function createApp({ db = defaultDb, authMiddleware = authRequired } = {}) {
   registerProjectRoutes(app, db);
   registerTaskRoutes(app, db);
   registerEvidenceRoutes(app, db);
+  registerMetricsRoutes(app, db);
 
   app.use(notFound);
   app.use(errorHandler);
