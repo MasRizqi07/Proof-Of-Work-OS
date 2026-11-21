@@ -31,8 +31,28 @@ function registerProjectRoutes(router, db) {
         }),
         db.project.count({ where }),
       ]);
+      const projectIds = items.map((p) => p.id);
+      const doneCounts =
+        projectIds.length > 0 && typeof db.task?.groupBy === 'function'
+          ? await db.task.groupBy({
+              by: ['projectId'],
+              where: {
+                projectId: { in: projectIds },
+                status: 'DONE',
+              },
+              _count: { id: true },
+            })
+          : [];
+      const doneCountMap = new Map(
+        doneCounts.map((c) => [c.projectId, c._count.id]),
+      );
       return res.json({
-        items: items.map(projectForApi),
+        items: items.map((item) =>
+          projectForApi(item, {
+            total: item._count?.tasks ?? 0,
+            done: doneCountMap.get(item.id) ?? 0,
+          }),
+        ),
         page,
         limit,
         total,
@@ -70,26 +90,42 @@ function registerProjectRoutes(router, db) {
   router.get(
     '/api/projects/:projectId',
     asyncHandler(async (req, res) => {
-      const project = await db.project.findFirst({
-        where: {
-          id: parse(id, req.params.projectId),
-          ownerId: req.user.id,
-          archivedAt: null,
-        },
-        include: {
-          tasks: {
-            take: 50,
-            orderBy: { createdAt: 'desc' },
+      const projectId = parse(id, req.params.projectId);
+      const [project, totalTasks, doneTasks] = await Promise.all([
+        db.project.findFirst({
+          where: {
+            id: projectId,
+            ownerId: req.user.id,
+            archivedAt: null,
           },
-        },
-      });
+          include: {
+            tasks: {
+              take: 50,
+              orderBy: { createdAt: 'desc' },
+            },
+          },
+        }),
+        db.task.count({
+          where: {
+            projectId,
+            user: { id: req.user.id },
+          },
+        }),
+        db.task.count({
+          where: {
+            projectId,
+            user: { id: req.user.id },
+            status: 'DONE',
+          },
+        }),
+      ]);
       if (!project) {
         return res
           .status(404)
           .json(errorResponse(req, 'PROJECT_NOT_FOUND', 'Project not found'));
       }
       return res.json({
-        ...projectForApi(project),
+        ...projectForApi(project, { total: totalTasks, done: doneTasks }),
         tasks: (project.tasks || []).map(taskForApi),
       });
     }),

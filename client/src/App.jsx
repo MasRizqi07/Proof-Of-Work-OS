@@ -7,6 +7,7 @@ import { useTasks } from './hooks/useTasks';
 import { useProjects } from './hooks/useProjects';
 import AuthPanel from './components/AuthPanel';
 import StateMessage from './components/StateMessage';
+import MetricsPanel from './components/MetricsPanel';
 import TaskForm from './components/TaskForm';
 import TaskFilter from './components/TaskFilter';
 import TaskList from './components/TaskList';
@@ -41,6 +42,7 @@ function AuthenticatedApp() {
   const { authLoading, authenticated, unauthenticated } = useAuth();
   const [statusFilter, setStatusFilter] = useState('');
   const [projectFilter, setProjectFilter] = useState('');
+  const [proofFilter, setProofFilter] = useState('');
 
   const userQuery = useQuery({
     queryKey: ['user'],
@@ -54,6 +56,7 @@ function AuthenticatedApp() {
     {
       status: statusFilter || undefined,
       projectId: projectFilter || undefined,
+      hasProof: proofFilter || undefined,
     },
   );
   const { projectsQuery, createProject, updateProject, deleteProject } =
@@ -106,13 +109,18 @@ function AuthenticatedApp() {
 
         {!authLoading && authenticated && userQuery.isError && (
           <StateMessage>
-            We couldn't load your profile.{' '}
-            <button className="link-button" onClick={() => userQuery.refetch()}>
+            We couldn&apos;t load your profile.{' '}
+            <button
+              type="button"
+              className="link-button"
+              onClick={() => userQuery.refetch()}
+            >
               Try again
             </button>
           </StateMessage>
         )}
 
+        {/* Overview Stats (PRD M-03 preservation) */}
         <section className="stats-grid" aria-label="Overview statistics">
           {[
             ['completedTasks', 'Completed tasks'],
@@ -128,64 +136,73 @@ function AuthenticatedApp() {
 
         {!authLoading && authenticated && (
           <main id="main" tabIndex="-1" className="dashboard-grid">
-            <section
-              className="panel tasks-panel"
-              aria-labelledby="tasks-heading"
-            >
-              <div className="panel-heading">
-                <div>
-                  <p className="eyebrow">Today</p>
-                  <h2 id="tasks-heading">Active work</h2>
+            <div className="dashboard-main-stack">
+              <MetricsPanel enabled={authenticated} />
+
+              <section
+                className="panel tasks-panel"
+                aria-labelledby="tasks-heading"
+              >
+                <div className="panel-heading">
+                  <div>
+                    <p className="eyebrow">Today</p>
+                    <h2 id="tasks-heading">Active work</h2>
+                  </div>
                 </div>
-              </div>
-              <TaskForm
-                onCreate={(task) => createTask.mutate(task)}
-                isPending={createTask.isPending}
-                projects={projects}
-              />
-              <TaskFilter
-                statusFilter={statusFilter}
-                onStatusChange={setStatusFilter}
-                projectFilter={projectFilter}
-                onProjectChange={setProjectFilter}
-                projects={projects}
-              />
-              {createTask.isError && (
-                <StateMessage>
-                  Couldn't add that task. {createTask.error.message}
-                </StateMessage>
-              )}
-              {updateTask.isError && (
-                <StateMessage>
-                  Couldn't update that task. {updateTask.error.message}
-                </StateMessage>
-              )}
-              {deleteTask.isError && (
-                <StateMessage>
-                  Couldn't delete that task. {deleteTask.error.message}
-                </StateMessage>
-              )}
-              {tasksQuery.isLoading ? (
-                <StateMessage>Loading tasks…</StateMessage>
-              ) : tasksQuery.isError ? (
-                <StateMessage>
-                  Couldn't load tasks.{' '}
-                  <button
-                    className="link-button"
-                    onClick={() => tasksQuery.refetch()}
-                  >
-                    Retry
-                  </button>
-                </StateMessage>
-              ) : (
-                <TaskList
-                  tasks={tasksQuery.data?.items || tasksQuery.data || []}
-                  onDelete={(id) => deleteTask.mutate(id)}
-                  onUpdate={(task) => updateTask.mutate(task)}
-                  isDeleting={deleteTask.isPending}
+                <TaskForm
+                  onCreate={(task) => createTask.mutate(task)}
+                  isPending={createTask.isPending}
+                  projects={projects}
                 />
-              )}
-            </section>
+                <TaskFilter
+                  statusFilter={statusFilter}
+                  onStatusChange={setStatusFilter}
+                  projectFilter={projectFilter}
+                  onProjectChange={setProjectFilter}
+                  proofFilter={proofFilter}
+                  onProofChange={setProofFilter}
+                  projects={projects}
+                />
+                {createTask.isError && (
+                  <StateMessage>
+                    Couldn&apos;t add that task. {createTask.error.message}
+                  </StateMessage>
+                )}
+                {updateTask.isError && (
+                  <StateMessage>
+                    Couldn&apos;t update that task. {updateTask.error.message}
+                  </StateMessage>
+                )}
+                {deleteTask.isError && (
+                  <StateMessage>
+                    Couldn&apos;t delete that task. {deleteTask.error.message}
+                  </StateMessage>
+                )}
+                {tasksQuery.isLoading ? (
+                  <StateMessage>Loading tasks…</StateMessage>
+                ) : tasksQuery.isError ? (
+                  <StateMessage>
+                    Couldn&apos;t load tasks.{' '}
+                    <button
+                      type="button"
+                      className="link-button"
+                      onClick={() => tasksQuery.refetch()}
+                    >
+                      Retry
+                    </button>
+                  </StateMessage>
+                ) : (
+                  <TaskList
+                    tasks={tasksQuery.data?.items || tasksQuery.data || []}
+                    onDelete={(id) => deleteTask.mutate(id)}
+                    onUpdate={(task) => updateTask.mutate(task)}
+                    isDeleting={deleteTask.isPending}
+                    projects={projects}
+                  />
+                )}
+              </section>
+            </div>
+
             <aside className="sidebar-stack" aria-label="Projects and activity">
               <Projects
                 projects={projects}

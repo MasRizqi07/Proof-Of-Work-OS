@@ -67,6 +67,22 @@ function fakeDb() {
       },
     },
     task: {
+      groupBy: async ({ where }) => {
+        const matching = tasks.filter((t) => {
+          if (where?.projectId?.in && !where.projectId.in.includes(t.projectId))
+            return false;
+          if (where?.status && t.status !== where.status) return false;
+          return true;
+        });
+        const counts = {};
+        for (const t of matching) {
+          counts[t.projectId] = (counts[t.projectId] || 0) + 1;
+        }
+        return Object.entries(counts).map(([projectId, count]) => ({
+          projectId,
+          _count: { id: count },
+        }));
+      },
       findMany: async ({ where }) =>
         tasks.filter(
           (t) =>

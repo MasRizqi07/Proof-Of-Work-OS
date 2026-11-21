@@ -67,11 +67,20 @@ const taskForApi = (task) => {
   };
 };
 
-const projectForApi = (project) =>
-  project && {
-    ...project,
+const projectForApi = (project, taskCounts) => {
+  if (!project) return null;
+  const rest = { ...project };
+  delete rest._count;
+  return {
+    ...rest,
     status: dbToProjectStatus[project.status] || project.status,
+    taskCounts: taskCounts ||
+      project.taskCounts || {
+        total: project._count?.tasks ?? 0,
+        done: 0,
+      },
   };
+};
 
 const evidenceForApi = (evidence) =>
   evidence && {

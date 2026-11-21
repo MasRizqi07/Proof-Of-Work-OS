@@ -3,7 +3,9 @@ export default function TaskFilter({
   onStatusChange,
   projectFilter,
   onProjectChange,
-  projects,
+  proofFilter = '',
+  onProofChange,
+  projects = [],
 }) {
   return (
     <div className="task-filter">
@@ -21,6 +23,20 @@ export default function TaskFilter({
           <option value="cancelled">Cancelled</option>
         </select>
       </label>
+
+      <label>
+        Proof{' '}
+        <select
+          value={proofFilter}
+          onChange={(e) => onProofChange && onProofChange(e.target.value)}
+          aria-label="Filter tasks by proof"
+        >
+          <option value="">All</option>
+          <option value="true">With proof</option>
+          <option value="false">No proof yet</option>
+        </select>
+      </label>
+
       {projects.length > 0 && (
         <label>
           Project{' '}
