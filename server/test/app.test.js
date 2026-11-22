@@ -344,3 +344,37 @@ test('production config requires explicit CORS_ORIGIN', () => {
     true,
   );
 });
+
+test('R-08: project search query validation rejects objects and strings > 100 chars with 400', async () => {
+  const { db } = fakeDb();
+  const app = createApp({ db, authMiddleware: auth() });
+
+  // Test search[a]=1 (parsed by qs/express as object)
+  const objRes = await request(app)
+    .get('/api/projects?search[a]=1')
+    .set('Authorization', 'Bearer valid');
+  assert.equal(objRes.status, 400);
+  assert.equal(objRes.body.error.code, 'VALIDATION_ERROR');
+
+  // Test search > 100 characters
+  const longSearch = 'a'.repeat(101);
+  const longRes = await request(app)
+    .get(`/api/projects?search=${longSearch}`)
+    .set('Authorization', 'Bearer valid');
+  assert.equal(longRes.status, 400);
+  assert.equal(longRes.body.error.code, 'VALIDATION_ERROR');
+});
+
+test('R-07: ping and ready endpoints bypass rate limiting', async () => {
+  const { db } = fakeDb();
+  const app = createApp({ db });
+
+  // Fire 110 requests (exceeding default 100 RATE_LIMIT_MAX)
+  for (let i = 0; i < 105; i++) {
+    const res = await request(app).get('/api/ping');
+    assert.equal(res.status, 200);
+  }
+
+  const readyRes = await request(app).get('/api/ready');
+  assert.equal(readyRes.status, 200);
+});

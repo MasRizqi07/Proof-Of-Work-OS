@@ -21,30 +21,7 @@ export function useTasks(enabled, { status, projectId, hasProof } = {}) {
   });
 
   const updateTask = useMutation({
-    mutationFn: ({
-      id,
-      title,
-      description,
-      status,
-      priority,
-      progress,
-      dueDate,
-      projectId,
-    }) =>
-      api.updateTask(
-        id,
-        Object.fromEntries(
-          Object.entries({
-            title,
-            description,
-            status,
-            priority,
-            progress,
-            dueDate,
-            projectId,
-          }).filter(([, value]) => value !== undefined),
-        ),
-      ),
+    mutationFn: ({ id, ...patch }) => api.updateTask(id, patch),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
       queryClient.invalidateQueries({ queryKey: ['metrics-summary'] });

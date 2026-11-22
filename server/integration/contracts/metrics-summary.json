@@ -1,0 +1,22 @@
+{
+  "generatedAt": "string",
+  "streak": {
+    "currentWeeks": "number",
+    "longestWeeks": "number"
+  },
+  "timezone": "string",
+  "totals": {
+    "completed": "number",
+    "overdueOpen": "number",
+    "proofRate": "number",
+    "withProof": "number",
+    "withoutProof": "number"
+  },
+  "weekly": [
+    {
+      "weekStart": "string",
+      "withProof": "number",
+      "withoutProof": "number"
+    }
+  ]
+}

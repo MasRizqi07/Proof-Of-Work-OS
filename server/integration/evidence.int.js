@@ -194,13 +194,18 @@ test('E-03 list and delete with 404 on foreign task and on evidenceId of another
   assert.equal(deleteForeign.status, 404);
   assert.equal(deleteForeign.body.error.code, 'TASK_NOT_FOUND');
 
-  // User A lists Task 1 evidence successfully
+  // User A lists Task 1 evidence successfully (R-01 paginated contract)
   const listA = await request(app)
     .get(`/api/tasks/${task1Id}/evidence`)
     .set('Authorization', 'Bearer user-a');
   assert.equal(listA.status, 200);
-  assert.equal(listA.body.length, 1);
-  assert.equal(listA.body[0].id, evidence1Id);
+  assert.equal(Array.isArray(listA.body.items), true);
+  assert.equal(listA.body.items.length, 1);
+  assert.equal(listA.body.total, 1);
+  assert.equal(listA.body.page, 1);
+  assert.equal(listA.body.limit, 20);
+  assert.equal(listA.body.pages, 1);
+  assert.equal(listA.body.items[0].id, evidence1Id);
 
   // User A deletes Evidence 1 successfully
   const deleteOk = await request(app)
@@ -375,4 +380,56 @@ test('T-04 filter and its 400', async () => {
     .set('Authorization', 'Bearer user-a');
   assert.equal(resInvalid.status, 400);
   assert.equal(resInvalid.body.error.code, 'VALIDATION_ERROR');
+});
+
+test('R-01: task with 2 evidence items returns paginated contract with newest first', async () => {
+  const app = buildTestApp();
+
+  const taskRes = await request(app)
+    .post('/api/tasks')
+    .set('Authorization', 'Bearer user-a')
+    .send({ title: 'Task with two proofs' });
+  const taskId = taskRes.body.id;
+
+  // Evidence 1 (older)
+  const ev1 = await request(app)
+    .post(`/api/tasks/${taskId}/evidence`)
+    .set('Authorization', 'Bearer user-a')
+    .send({
+      kind: 'note',
+      label: 'Proof One',
+      body: 'First older proof',
+    });
+  assert.equal(ev1.status, 201);
+
+  // Evidence 2 (newer)
+  const ev2 = await request(app)
+    .post(`/api/tasks/${taskId}/evidence`)
+    .set('Authorization', 'Bearer user-a')
+    .send({
+      kind: 'url',
+      label: 'Proof Two',
+      url: 'https://github.com/MasRizqi07/Proof-Of-Work-OS/pull/1',
+    });
+  assert.equal(ev2.status, 201);
+
+  // GET /api/tasks/:taskId/evidence
+  const listRes = await request(app)
+    .get(`/api/tasks/${taskId}/evidence`)
+    .set('Authorization', 'Bearer user-a');
+
+  assert.equal(listRes.status, 200);
+  assert.deepEqual(
+    {
+      page: listRes.body.page,
+      limit: listRes.body.limit,
+      total: listRes.body.total,
+      pages: listRes.body.pages,
+    },
+    { page: 1, limit: 20, total: 2, pages: 1 },
+  );
+  assert.equal(listRes.body.items.length, 2);
+  // Newest first: ev2 should be items[0], ev1 should be items[1]
+  assert.equal(listRes.body.items[0].id, ev2.body.id);
+  assert.equal(listRes.body.items[1].id, ev1.body.id);
 });

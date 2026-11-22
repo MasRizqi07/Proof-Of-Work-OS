@@ -1,11 +1,11 @@
 # DESIGN ADDENDUM v1.1 — Proof of Work OS
 
-| Field | Nilai |
-| :--- | :--- |
-| Versi | 1.1 (LOCKED) |
-| Tanggal | 2026-11-22 |
+| Field    | Nilai                                                                                                                                                                                 |
+| :------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Versi    | 1.1 (LOCKED)                                                                                                                                                                          |
+| Tanggal  | 2026-11-22                                                                                                                                                                            |
 | Hubungan | Menambah `docs/DESIGN.md` v1.0. Semua aturan v1.0 tetap berlaku (token tiga tingkat, nol hex di luar `tokens.css`, dua tema, WCAG 2.2 AA sebagai target). Dokumen ini hanya menambah. |
-| Batasan | CSS biasa. Tanpa library UI, ikon, chart, tanggal, router, atau palette. Semua interaksi memakai elemen native (`dialog`, `details`, `kbd`, `Intl`). |
+| Batasan  | CSS biasa. Tanpa library UI, ikon, chart, tanggal, router, atau palette. Semua interaksi memakai elemen native (`dialog`, `details`, `kbd`, `Intl`).                                  |
 
 Arah visual tidak berubah: hangat, tenang, kontras tinggi, data bukti dalam monospace, hijau hanya untuk "ada bukti". Tambahan v1.1 memakai satu aksen baru yang sudah ada: biru tinta (`--color-accent`) untuk sinyal "dicek pihak ketiga" (lencana GitHub). Hijau tetap eksklusif untuk bukti.
 
@@ -17,13 +17,13 @@ Arah visual tidak berubah: hangat, tenang, kontras tinggi, data bukti dalam mono
 
 Lima level intensitas bukti per hari. Level 4 sama dengan `--color-proof-fg`.
 
-| Token | Terang | Gelap | Kontras vs `surface` (terang / gelap) |
-| :--- | :--- | :--- | :---: |
-| `--color-heat-0` | `#e0dacb` | `#272621` | 1.37 / 1.11 |
-| `--color-heat-1` | `#b7d8c2` | `#1f4a31` | 1.52 / 1.67 |
-| `--color-heat-2` | `#52a173` | `#2f7a52` | 3.08 / 3.23 |
-| `--color-heat-3` | `#2e8a5b` | `#4fae7c` | 4.22 / 6.17 |
-| `--color-heat-4` | `#17603f` | `#7fd8a6` | 7.43 / 9.86 |
+| Token            | Terang    | Gelap     | Kontras vs `surface` (terang / gelap) |
+| :--------------- | :-------- | :-------- | :-----------------------------------: |
+| `--color-heat-0` | `#e0dacb` | `#272621` |              1.37 / 1.11              |
+| `--color-heat-1` | `#b7d8c2` | `#1f4a31` |              1.52 / 1.67              |
+| `--color-heat-2` | `#52a173` | `#2f7a52` |              3.08 / 3.23              |
+| `--color-heat-3` | `#2e8a5b` | `#4fae7c` |              4.22 / 6.17              |
+| `--color-heat-4` | `#17603f` | `#7fd8a6` |              7.43 / 9.86              |
 
 Nilai dihitung dengan rumus luminansi WCAG. Level 2 sampai 4 memenuhi 3:1 (WCAG 1.4.11). **Level 0 dan 1 tidak memenuhi 3:1 dan itu keterbatasan yang diketahui.** Penutupnya ada tiga: tabel data lengkap sebagai alternatif teks, `aria-label` per sel ("12 Nov 2026: 2 with proof, 1 without"), dan legenda angka yang terlihat. Sel level 0 diberi border 1px `--color-border`, bukan hanya isian.
 
@@ -76,12 +76,12 @@ Elemen `dialog` modal dengan pola combobox: `input` (`role="combobox"`, `aria-ex
 
 ### 4.2 Pintasan
 
-| Tombol | Aksi |
-| :--- | :--- |
-| `n` | fokus ke judul form task baru |
-| `/` | fokus ke kotak pencarian task |
-| `t` | ganti tema |
-| `?` | buka dialog bantuan pintasan |
+| Tombol | Aksi                          |
+| :----- | :---------------------------- |
+| `n`    | fokus ke judul form task baru |
+| `/`    | fokus ke kotak pencarian task |
+| `t`    | ganti tema                    |
+| `?`    | buka dialog bantuan pintasan  |
 
 Aturan: pintasan satu huruf tidak aktif saat fokus berada di `input`, `textarea`, `select`, atau elemen `contenteditable`, tidak aktif saat dialog lain terbuka, dan tidak bertabrakan dengan pintasan browser atau pembaca layar (tidak memakai kombinasi `Ctrl` atau `Alt` kecuali `Ctrl/Cmd+K`). Setiap pintasan harus punya padanan tombol terlihat di UI (WCAG 2.1.4). Dialog bantuan mendaftar semuanya dalam `table`.
 
@@ -134,6 +134,7 @@ Susunan satu kolom (maksimal 760 px, di tengah):
 ```
 
 Aturan tampilan:
+
 - Bukti `note` hanya menampilkan label dan ikon catatan. Isi catatan tidak pernah tampil di halaman publik.
 - Bukti `url` menampilkan label dan hostname (monospace) dengan tautan `target="_blank" rel="noopener noreferrer"`, melalui fungsi `safeHref` yang hanya meloloskan `http:` dan `https:`.
 - Catatan kaki jujur di atas wajib tampil dan tidak boleh disembunyikan di layar kecil.
@@ -153,12 +154,12 @@ Elemen `dialog` yang sama dengan panel detail (lembar bawah di layar sempit, pan
 
 Lencana bukti dengan verifikasi memakai palet aksen, bukan hijau:
 
-| Status | Tampilan |
-| :--- | :--- |
-| `merged` | latar `--color-accent-subtle`, teks `--color-accent`, ikon `git-merge`, teks "Merged on GitHub · owner/repo#42 · @author" |
-| `open` | latar `--color-surface-sunken`, teks `--color-text-secondary`, teks "PR open · owner/repo#42" |
-| `closed` | latar `--color-surface-sunken`, teks `--color-text-muted`, teks "PR closed, not merged · owner/repo#42" |
-| tidak terverifikasi | tidak ada lencana tambahan. Bukti tampil seperti bukti biasa. |
+| Status              | Tampilan                                                                                                                  |
+| :------------------ | :------------------------------------------------------------------------------------------------------------------------ |
+| `merged`            | latar `--color-accent-subtle`, teks `--color-accent`, ikon `git-merge`, teks "Merged on GitHub · owner/repo#42 · @author" |
+| `open`              | latar `--color-surface-sunken`, teks `--color-text-secondary`, teks "PR open · owner/repo#42"                             |
+| `closed`            | latar `--color-surface-sunken`, teks `--color-text-muted`, teks "PR closed, not merged · owner/repo#42"                   |
+| tidak terverifikasi | tidak ada lencana tambahan. Bukti tampil seperti bukti biasa.                                                             |
 
 `title` pada lencana berisi: "Checked against GitHub's public API on 22 Nov 2026. This does not prove who you are." Tanggal memakai `Intl.DateTimeFormat`. Pasangan `--color-accent` di atas `--color-accent-subtle` sudah terverifikasi di tabel kontras v1.0.
 
@@ -167,6 +168,7 @@ Lencana bukti dengan verifikasi memakai palet aksen, bukan hijau:
 Halaman `/report` (perlu login) menampilkan task selesai dalam rentang 30, 90, atau 365 hari, dikelompokkan per minggu, dengan bukti lengkap termasuk isi catatan milik user sendiri. Tombol "Print or save as PDF" memanggil `window.print()`. Tidak ada library PDF.
 
 Aturan cetak (`@media print`):
+
 - Tema terang paksa (bagian 1.2). Chrome aplikasi (header, tombol, toggle, sidebar) disembunyikan.
 - Header laporan: nama tampilan, rentang tanggal, "Generated {timestamp} · {timezone}", dan satu baris "Proof is attached by the owner. Merged-PR labels are checked against GitHub's public API."
 - Tautan menampilkan URL penuh setelah teksnya: `a[href^='http']::after { content: ' (' attr(href) ')'; }`.

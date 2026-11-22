@@ -1,6 +1,12 @@
 const { asyncHandler } = require('../middleware/asyncHandler');
 const { errorResponse } = require('../middleware/errors');
-const { id, projectCreate, projectUpdate, parse } = require('../validation');
+const {
+  id,
+  projectCreate,
+  projectUpdate,
+  searchQuery,
+  parse,
+} = require('../validation');
 const {
   projectStatusToDb,
   projectForApi,
@@ -14,6 +20,9 @@ function registerProjectRoutes(router, db) {
     '/api/projects',
     asyncHandler(async (req, res) => {
       const { page, limit, skip } = pagination(req);
+      if (req.query.search !== undefined) {
+        parse(searchQuery, req.query.search);
+      }
       const where = {
         ownerId: req.user.id,
         archivedAt: null,
@@ -33,7 +42,7 @@ function registerProjectRoutes(router, db) {
       ]);
       const projectIds = items.map((p) => p.id);
       const doneCounts =
-        projectIds.length > 0 && typeof db.task?.groupBy === 'function'
+        projectIds.length > 0
           ? await db.task.groupBy({
               by: ['projectId'],
               where: {

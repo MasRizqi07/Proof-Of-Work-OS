@@ -19,7 +19,8 @@
     "format:check": "prettier --check \"server/**/*.js\" \"client/src/**/*.{js,jsx,css}\" \"prisma/**/*.js\" \"*.{js,json,md}\""
   },
   "overrides": {
-    "deepmerge-ts": "8.0.2"
+    "deepmerge-ts": "8.0.2",
+    "effect": ">=3.22.1"
   },
   "devDependencies": {
     "concurrently": "^8.2.0",

@@ -1,0 +1,22 @@
+{
+  "items": [
+    {
+      "archivedAt": "null",
+      "createdAt": "string",
+      "description": "string",
+      "id": "string",
+      "name": "string",
+      "ownerId": "string",
+      "status": "string",
+      "taskCounts": {
+        "done": "number",
+        "total": "number"
+      },
+      "updatedAt": "string"
+    }
+  ],
+  "limit": "number",
+  "page": "number",
+  "pages": "number",
+  "total": "number"
+}

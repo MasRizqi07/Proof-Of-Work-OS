@@ -1,11 +1,11 @@
 # PRD ADDENDUM v1.1 — Proof of Work OS
 
-| Field | Nilai |
-| :--- | :--- |
-| Versi | 1.1 (LOCKED) |
-| Tanggal | 2026-11-22 |
+| Field    | Nilai                                                                                                                                                   |
+| :------- | :------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Versi    | 1.1 (LOCKED)                                                                                                                                            |
+| Tanggal  | 2026-11-22                                                                                                                                              |
 | Hubungan | Menambah dan mengoreksi `docs/PRD.md` v1.0. Bila bertentangan, addendum ini menang untuk butir yang disebut di bawah. Butir lain di v1.0 tetap berlaku. |
-| Dasar | Audit Phase 6 pada branch `feat/proof-foundation`, HEAD `386812b`, 2026-11-22. Temuan lengkap ada di `docs/ANTIGRAVITY_MASTER_PROMPT_V2.md` bagian 0. |
+| Dasar    | Audit Phase 6 pada branch `feat/proof-foundation`, HEAD `386812b`, 2026-11-22. Temuan lengkap ada di `docs/ANTIGRAVITY_MASTER_PROMPT_V2.md` bagian 0.   |
 
 Penanda bukti sama seperti v1.0: **[VERIFIED]** diukur langsung, **[CLAIM]** belum terbukti, **[DECISION]** keputusan terkunci.
 
@@ -13,50 +13,53 @@ Penanda bukti sama seperti v1.0: **[VERIFIED]** diukur langsung, **[CLAIM]** bel
 
 ## 1. Koreksi atas v1.0
 
-| ID | Koreksi | Alasan |
-| :--- | :--- | :--- |
-| C-01 | **E-03 tetap berlaku seperti tertulis.** `GET /api/tasks/:taskId/evidence` mengembalikan `{ items, page, limit, total, pages }`, urut terbaru dulu. Server yang harus menyesuaikan. | **[VERIFIED]** Server mengembalikan array telanjang dan urut terlama dulu. Klien membaca `.items`. Dalam uji ad-hoc, respons berisi 2 bukti ditampilkan sebagai "0 / 20" dan daftar kosong. Uji integrasi server (baris 202 `evidence.int.js`) menegaskan bentuk array, jadi ia mengunci kesalahan, bukan menangkapnya. |
-| C-02 | **T-02 diperjelas.** `PATCH` dari panel detail mengirim hanya field yang berubah. Teks "Saved." muncul hanya setelah server menjawab sukses. Bila gagal, nilai kembali dan pesan error inline muncul (`role="alert"`). | **[VERIFIED]** Panel mengirim semua field dan menampilkan "Saved." sebelum ada jawaban server. `useTasks.updateTask` tidak punya `onError`. |
-| C-03 | **A-03 diperluas.** Build produksi dengan `VITE_API_URL` kosong menampilkan layar "Configuration required" dan tidak memanggil localhost. | Perubahan ini ada di master prompt v1.0 tetapi tidak sampai ke `PRD.md` di repo. **[VERIFIED]** `PRD.md` di repo adalah versi sebelum koreksi. |
-| C-04 | **NFR performa** memakai dataset 5.000 task milik user uji dan 50.000 task milik user lain. | Pada dataset satu user, planner wajar memilih sequential scan. |
-| C-05 | **Aturan SQL mentah**: `$queryRaw` dengan `Prisma.sql` hanya di `server/src/services/`. `$executeRawUnsafe` boleh dipakai di `server/integration/` dengan string statis, hanya untuk membuktikan CHECK constraint dan membersihkan tabel. Nilai yang disisipkan harus konstanta, bukan input. | Aturan v1.0 melarang `executeRawUnsafe` di seluruh `server/`. Menguji CHECK constraint memang membutuhkannya. Ini kesalahan spesifikasi, bukan kesalahan agent. |
-| C-06 | **`console.log` diizinkan di `server/integration/`** untuk mencetak bukti mentah (teks error PostgreSQL, hasil `count(*)`). Di `server/src/` tetap hanya satu baris startup. | Sama seperti C-05. |
-| C-07 | **Lokasi dokumen**: `PRD.md`, `DESIGN.md`, dan addendum berada di `docs/`. Pemilik produk menyalin versi terbaru. Agent tidak mengedit isi PRD. | **[VERIFIED]** Repo menyimpan keduanya di root dan dalam versi lama. |
+| ID   | Koreksi                                                                                                                                                                                                                                                                                       | Alasan                                                                                                                                                                                                                                                                                                                  |
+| :--- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| C-01 | **E-03 tetap berlaku seperti tertulis.** `GET /api/tasks/:taskId/evidence` mengembalikan `{ items, page, limit, total, pages }`, urut terbaru dulu. Server yang harus menyesuaikan.                                                                                                           | **[VERIFIED]** Server mengembalikan array telanjang dan urut terlama dulu. Klien membaca `.items`. Dalam uji ad-hoc, respons berisi 2 bukti ditampilkan sebagai "0 / 20" dan daftar kosong. Uji integrasi server (baris 202 `evidence.int.js`) menegaskan bentuk array, jadi ia mengunci kesalahan, bukan menangkapnya. |
+| C-02 | **T-02 diperjelas.** `PATCH` dari panel detail mengirim hanya field yang berubah. Teks "Saved." muncul hanya setelah server menjawab sukses. Bila gagal, nilai kembali dan pesan error inline muncul (`role="alert"`).                                                                        | **[VERIFIED]** Panel mengirim semua field dan menampilkan "Saved." sebelum ada jawaban server. `useTasks.updateTask` tidak punya `onError`.                                                                                                                                                                             |
+| C-03 | **A-03 diperluas.** Build produksi dengan `VITE_API_URL` kosong menampilkan layar "Configuration required" dan tidak memanggil localhost.                                                                                                                                                     | Perubahan ini ada di master prompt v1.0 tetapi tidak sampai ke `PRD.md` di repo. **[VERIFIED]** `PRD.md` di repo adalah versi sebelum koreksi.                                                                                                                                                                          |
+| C-04 | **NFR performa** memakai dataset 5.000 task milik user uji dan 50.000 task milik user lain.                                                                                                                                                                                                   | Pada dataset satu user, planner wajar memilih sequential scan.                                                                                                                                                                                                                                                          |
+| C-05 | **Aturan SQL mentah**: `$queryRaw` dengan `Prisma.sql` hanya di `server/src/services/`. `$executeRawUnsafe` boleh dipakai di `server/integration/` dengan string statis, hanya untuk membuktikan CHECK constraint dan membersihkan tabel. Nilai yang disisipkan harus konstanta, bukan input. | Aturan v1.0 melarang `executeRawUnsafe` di seluruh `server/`. Menguji CHECK constraint memang membutuhkannya. Ini kesalahan spesifikasi, bukan kesalahan agent.                                                                                                                                                         |
+| C-06 | **`console.log` diizinkan di `server/integration/`** untuk mencetak bukti mentah (teks error PostgreSQL, hasil `count(*)`). Di `server/src/` tetap hanya satu baris startup.                                                                                                                  | Sama seperti C-05.                                                                                                                                                                                                                                                                                                      |
+| C-07 | **Lokasi dokumen**: `PRD.md`, `DESIGN.md`, dan addendum berada di `docs/`. Pemilik produk menyalin versi terbaru. Agent tidak mengedit isi PRD.                                                                                                                                               | **[VERIFIED]** Repo menyimpan keduanya di root dan dalam versi lama.                                                                                                                                                                                                                                                    |
 
 ## 2. Scope v1.1
 
 Prioritas: **P0** = penghalang rilis atau penghalang peluncuran publik. **P1** = penting. **P2** = pembeda produk. Butir v1.0 yang sebelumnya **Defer** dan sekarang **Build** ditandai.
 
-| ID | Fitur | Prioritas | Verdict | Catatan |
-| :--- | :--- | :---: | :---: | :--- |
-| R | Perbaikan temuan audit Phase 6 | P0 | Build | Fase 6R |
-| V | Bukti browser nyata: E2E dan axe | P0 | Build | Fase 8 |
-| DR | Hak data: ekspor dan hapus akun | P0 untuk publik | Build (dari Defer) | Fase 9 |
-| PP | Profil bukti publik | P2 | Build (dari Defer) | Fase 10 |
-| GH | Lencana "Merged on GitHub" | P2 | Build (dari Defer, dibatasi) | Fase 11 |
-| K, S, O | Palette, pintasan, pencarian, pembaruan optimistis | P1 | Build | Fase 12 |
-| H, RP | Heatmap bukti, laporan cetak | P2 | Build | Fase 13 |
-| DP | Deploy dan operasi | P1 | Build | Fase 14, perlu keputusan pemilik |
-| — | PWA dan service worker | — | Defer | Risiko cache lama tanpa kebutuhan nyata |
-| — | Gambar OG dinamis, indexing mesin pencari | — | Defer | Butuh render server atau library gambar |
-| — | Error tracking pihak ketiga (Sentry dan sejenisnya) | — | Defer | Dependensi baru, belum ada kebutuhan |
-| — | Menautkan identitas GitHub lewat OAuth | — | Defer | Satu-satunya cara membuktikan kepemilikan PR. Ditunda. |
-| — | AI coach, team, role, notifikasi email, realtime, i18n, TypeScript | — | Defer | Tidak berubah dari v1.0 |
+| ID      | Fitur                                                              |    Prioritas    |           Verdict            | Catatan                                                |
+| :------ | :----------------------------------------------------------------- | :-------------: | :--------------------------: | :----------------------------------------------------- |
+| R       | Perbaikan temuan audit Phase 6                                     |       P0        |            Build             | Fase 6R                                                |
+| V       | Bukti browser nyata: E2E dan axe                                   |       P0        |            Build             | Fase 8                                                 |
+| DR      | Hak data: ekspor dan hapus akun                                    | P0 untuk publik |      Build (dari Defer)      | Fase 9                                                 |
+| PP      | Profil bukti publik                                                |       P2        |      Build (dari Defer)      | Fase 10                                                |
+| GH      | Lencana "Merged on GitHub"                                         |       P2        | Build (dari Defer, dibatasi) | Fase 11                                                |
+| K, S, O | Palette, pintasan, pencarian, pembaruan optimistis                 |       P1        |            Build             | Fase 12                                                |
+| H, RP   | Heatmap bukti, laporan cetak                                       |       P2        |            Build             | Fase 13                                                |
+| DP      | Deploy dan operasi                                                 |       P1        |            Build             | Fase 14, perlu keputusan pemilik                       |
+| —       | PWA dan service worker                                             |        —        |            Defer             | Risiko cache lama tanpa kebutuhan nyata                |
+| —       | Gambar OG dinamis, indexing mesin pencari                          |        —        |            Defer             | Butuh render server atau library gambar                |
+| —       | Error tracking pihak ketiga (Sentry dan sejenisnya)                |        —        |            Defer             | Dependensi baru, belum ada kebutuhan                   |
+| —       | Menautkan identitas GitHub lewat OAuth                             |        —        |            Defer             | Satu-satunya cara membuktikan kepemilikan PR. Ditunda. |
+| —       | AI coach, team, role, notifikasi email, realtime, i18n, TypeScript |        —        |            Defer             | Tidak berubah dari v1.0                                |
 
 Urutan yang disarankan: 6R, 7, 8, lalu 12 dan 13 (risiko rendah, terlihat), lalu 9, 10, 11, dan terakhir 14. Fase 10 mensyaratkan fase 9. Fase 14 mensyaratkan 6R, 7, 8, dan 9.
 
 ## 3. Perubahan model data
 
 **Profile** tambah: `displayName` (text, null, 1–60), `handle` (text, null, unik tanpa peka huruf), `isPublic` (boolean, default false).
+
 - CHECK: `handle` null atau cocok `^[a-z0-9](?:[a-z0-9-]{1,28})[a-z0-9]$` (3–30 karakter, huruf kecil, angka, strip, tanpa strip di ujung).
 - CHECK: `NOT "isPublic" OR "handle" IS NOT NULL`.
 - Handle disimpan huruf kecil. Daftar handle terlarang (ditolak di API): `admin`, `api`, `app`, `auth`, `help`, `login`, `logout`, `me`, `privacy`, `report`, `root`, `settings`, `signin`, `signup`, `support`, `terms`, `u`, `user`, `users`, `www`.
 
 **Task** tambah: `showcase` (boolean, default false).
+
 - CHECK: `NOT "showcase" OR "status" = 'done'`.
 - Aturan aplikasi: showcase hanya boleh untuk task `done` yang `hasProof`. Maksimal 6 per user. Keluar dari `done` atau menghapus bukti terakhir otomatis menurunkan `showcase` ke false dalam transaksi yang sama.
 
 **Evidence** tambah: `verifiedProvider` (text, null, nilai `github`), `verifiedStatus` (text, null, `merged` / `open` / `closed`), `verifiedMeta` (jsonb, null), `verifiedAt` (timestamp, null).
+
 - CHECK: keempat kolom semuanya null atau semuanya terisi, dan hanya untuk `kind = 'url'`.
 
 **DeletedUser** tabel baru: `id` (uuid, PK), `deletedAt` (timestamp, default now). Tanpa data pribadi. Tujuan: token JWT milik akun yang sudah dihapus tidak boleh memunculkan kembali baris `User` kosong lewat provisioning otomatis.
@@ -171,51 +174,51 @@ Urutan yang disarankan: 6R, 7, 8, lalu 12 dan 13 (risiko rendah, terlihat), lalu
 
 ## 5. Kontrak API tambahan
 
-| Method | Route | Autentikasi | Fase |
-| :--- | :--- | :--- | :---: |
-| `GET` | `/api/tasks?q=` | ya | 12 |
-| `GET` | `/api/tasks/:taskId/evidence` (bentuk dikoreksi) | ya | 6R |
-| `POST` | `/api/tasks/:taskId/evidence/:evidenceId/verify` | ya | 11 |
-| `GET` | `/api/metrics/heatmap` | ya | 13 |
-| `GET` | `/api/report` | ya | 13 |
-| `GET` | `/api/user/export` | ya | 9 |
-| `DELETE` | `/api/user` | ya | 9 |
-| `GET` | `/api/public/:handle` | **tidak** | 10 |
+| Method   | Route                                            | Autentikasi | Fase |
+| :------- | :----------------------------------------------- | :---------- | :--: |
+| `GET`    | `/api/tasks?q=`                                  | ya          |  12  |
+| `GET`    | `/api/tasks/:taskId/evidence` (bentuk dikoreksi) | ya          |  6R  |
+| `POST`   | `/api/tasks/:taskId/evidence/:evidenceId/verify` | ya          |  11  |
+| `GET`    | `/api/metrics/heatmap`                           | ya          |  13  |
+| `GET`    | `/api/report`                                    | ya          |  13  |
+| `GET`    | `/api/user/export`                               | ya          |  9   |
+| `DELETE` | `/api/user`                                      | ya          |  9   |
+| `GET`    | `/api/public/:handle`                            | **tidak**   |  10  |
 
 Kode error baru: `REAUTH_REQUIRED` (403), `AUTH_DELETE_FAILED` (502), `HANDLE_UNAVAILABLE` (409), `SHOWCASE_REQUIRES_PROOF` (409), `SHOWCASE_LIMIT_REACHED` (409).
 
 ## 6. NFR tambahan
 
-| Kategori | Persyaratan |
-| :--- | :--- |
-| Keamanan endpoint publik | Tanpa autentikasi, batas laju terpisah, respons 404 identik untuk profil privat dan tidak ada, whitelist field di sisi server (field baru tidak otomatis publik), tanpa ID internal, tanpa email, `X-Robots-Tag: noindex`. |
-| Keamanan permintaan keluar | Hanya ke `api.github.com`. Regex ketat sebelum permintaan. Tanpa redirect. Waktu habis dan batas ukuran. Token GitHub (opsional) hanya di sisi server dan tidak pernah dicatat. |
-| Rahasia | `SUPABASE_SERVICE_ROLE_KEY` dan `GITHUB_TOKEN` hanya di variabel lingkungan server. Tidak ada di klien, repo, log, atau pesan error. |
-| Aksesibilitas | Sama seperti v1.0, ditambah checklist di `docs/DESIGN_ADDENDUM_v1.1.md` bagian 12. Heatmap level 0 dan 1 tidak memenuhi 3:1 dan itu dinyatakan sebagai keterbatasan. |
-| Bundel | JS gzip maksimal 150 kB (v1.0: 120 kB; saat ini 79.95 kB). Font di luar hitungan. |
-| Privasi | Bukti catatan tidak pernah keluar di endpoint publik. Hapus akun menghapus semua baris user. Tombstone tidak memuat data pribadi. Konsultasikan kewajiban UU No. 27 Tahun 2022 dan teks kebijakan privasi dengan ahli hukum. Agent tidak menulis teks hukum. |
+| Kategori                   | Persyaratan                                                                                                                                                                                                                                                  |
+| :------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Keamanan endpoint publik   | Tanpa autentikasi, batas laju terpisah, respons 404 identik untuk profil privat dan tidak ada, whitelist field di sisi server (field baru tidak otomatis publik), tanpa ID internal, tanpa email, `X-Robots-Tag: noindex`.                                   |
+| Keamanan permintaan keluar | Hanya ke `api.github.com`. Regex ketat sebelum permintaan. Tanpa redirect. Waktu habis dan batas ukuran. Token GitHub (opsional) hanya di sisi server dan tidak pernah dicatat.                                                                              |
+| Rahasia                    | `SUPABASE_SERVICE_ROLE_KEY` dan `GITHUB_TOKEN` hanya di variabel lingkungan server. Tidak ada di klien, repo, log, atau pesan error.                                                                                                                         |
+| Aksesibilitas              | Sama seperti v1.0, ditambah checklist di `docs/DESIGN_ADDENDUM_v1.1.md` bagian 12. Heatmap level 0 dan 1 tidak memenuhi 3:1 dan itu dinyatakan sebagai keterbatasan.                                                                                         |
+| Bundel                     | JS gzip maksimal 150 kB (v1.0: 120 kB; saat ini 79.95 kB). Font di luar hitungan.                                                                                                                                                                            |
+| Privasi                    | Bukti catatan tidak pernah keluar di endpoint publik. Hapus akun menghapus semua baris user. Tombstone tidak memuat data pribadi. Konsultasikan kewajiban UU No. 27 Tahun 2022 dan teks kebijakan privasi dengan ahli hukum. Agent tidak menulis teks hukum. |
 
 ## 7. Release gate tambahan
 
-| Gate | Kriteria | Bukti yang diminta |
-| :--- | :--- | :--- |
-| R-17 | R-01 sampai R-11 | nama test dan output mentah, ditambah uji ad-hoc audit yang gagal sebelum perbaikan dan lolos sesudahnya |
-| R-18 | V-01 sampai V-03 | output suite E2E, laporan axe, tangkapan layar 6 lebar × 2 tema |
-| R-19 | DR-01 sampai DR-05 | output integrasi, bukti cascade (`count(*)` semua tabel = 0 untuk user), bukti tombstone |
-| R-20 | PP-01 sampai PP-08 | output integrasi, uji pencarian string untuk email dan isi catatan |
-| R-21 | GH-01 sampai GH-06 | output unit dengan `fetch` palsu, tujuh vektor SSRF, tanpa permintaan keluar |
-| R-22 | K, S, O | output uji komponen, hasil keyboard-only |
-| R-23 | H-01, RP-01 | output integrasi batas hari, pratinjau cetak |
-| R-24 | DP-01 sampai DP-03 | output `smoke.mjs` terhadap lingkungan nyata, URL run CI hijau |
+| Gate | Kriteria           | Bukti yang diminta                                                                                       |
+| :--- | :----------------- | :------------------------------------------------------------------------------------------------------- |
+| R-17 | R-01 sampai R-11   | nama test dan output mentah, ditambah uji ad-hoc audit yang gagal sebelum perbaikan dan lolos sesudahnya |
+| R-18 | V-01 sampai V-03   | output suite E2E, laporan axe, tangkapan layar 6 lebar × 2 tema                                          |
+| R-19 | DR-01 sampai DR-05 | output integrasi, bukti cascade (`count(*)` semua tabel = 0 untuk user), bukti tombstone                 |
+| R-20 | PP-01 sampai PP-08 | output integrasi, uji pencarian string untuk email dan isi catatan                                       |
+| R-21 | GH-01 sampai GH-06 | output unit dengan `fetch` palsu, tujuh vektor SSRF, tanpa permintaan keluar                             |
+| R-22 | K, S, O            | output uji komponen, hasil keyboard-only                                                                 |
+| R-23 | H-01, RP-01        | output integrasi batas hari, pratinjau cetak                                                             |
+| R-24 | DP-01 sampai DP-03 | output `smoke.mjs` terhadap lingkungan nyata, URL run CI hijau                                           |
 
 ## 8. Keputusan yang hanya bisa diambil pemilik
 
-| ID | Keputusan | Default yang disarankan | Dampak bila tidak diputuskan |
-| :--- | :--- | :--- | :--- |
-| D-01 | Siapa yang menyediakan `SUPABASE_SERVICE_ROLE_KEY` dan di mana disimpan | Pemilik membuatnya di dashboard Supabase dan menaruhnya hanya di variabel lingkungan server | Fase 9 berhenti di G13 |
-| D-02 | Host database: Supabase Postgres atau Postgres di platform deploy | Supabase Postgres dengan pooler dan `directUrl` | Fase 14 berhenti di G16 |
-| D-03 | Host klien: Vercel, Cloudflare Pages, Netlify, atau statis di Railway | Cloudflare Pages atau Vercel (rewrite SPA gratis) | Fase 14 berhenti di G16 |
-| D-04 | `GITHUB_TOKEN` read-only untuk repo publik, atau batas laju tanpa token (60 per jam per IP) | Token fine-grained read-only | Fase 11 berhenti di G14 |
-| D-05 | Teks kebijakan privasi dan syarat | Ditulis atau ditinjau pemilik dan ahli hukum | Fase 10 dan 14 tidak boleh publik tanpa teks itu |
-| D-06 | Persona A1 dari v1.0 | Tetap | Prioritas bisa bergeser |
-| D-07 | Apakah fase 11 (GitHub) dikerjakan | Opsional, setelah 9 dan 10 | Fase dilewati |
+| ID   | Keputusan                                                                                   | Default yang disarankan                                                                     | Dampak bila tidak diputuskan                     |
+| :--- | :------------------------------------------------------------------------------------------ | :------------------------------------------------------------------------------------------ | :----------------------------------------------- |
+| D-01 | Siapa yang menyediakan `SUPABASE_SERVICE_ROLE_KEY` dan di mana disimpan                     | Pemilik membuatnya di dashboard Supabase dan menaruhnya hanya di variabel lingkungan server | Fase 9 berhenti di G13                           |
+| D-02 | Host database: Supabase Postgres atau Postgres di platform deploy                           | Supabase Postgres dengan pooler dan `directUrl`                                             | Fase 14 berhenti di G16                          |
+| D-03 | Host klien: Vercel, Cloudflare Pages, Netlify, atau statis di Railway                       | Cloudflare Pages atau Vercel (rewrite SPA gratis)                                           | Fase 14 berhenti di G16                          |
+| D-04 | `GITHUB_TOKEN` read-only untuk repo publik, atau batas laju tanpa token (60 per jam per IP) | Token fine-grained read-only                                                                | Fase 11 berhenti di G14                          |
+| D-05 | Teks kebijakan privasi dan syarat                                                           | Ditulis atau ditinjau pemilik dan ahli hukum                                                | Fase 10 dan 14 tidak boleh publik tanpa teks itu |
+| D-06 | Persona A1 dari v1.0                                                                        | Tetap                                                                                       | Prioritas bisa bergeser                          |
+| D-07 | Apakah fase 11 (GitHub) dikerjakan                                                          | Opsional, setelah 9 dan 10                                                                  | Fase dilewati                                    |

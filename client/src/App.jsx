@@ -195,7 +195,7 @@ function AuthenticatedApp() {
                   <TaskList
                     tasks={tasksQuery.data?.items || tasksQuery.data || []}
                     onDelete={(id) => deleteTask.mutate(id)}
-                    onUpdate={(task) => updateTask.mutate(task)}
+                    onUpdate={(task) => updateTask.mutateAsync(task)}
                     isDeleting={deleteTask.isPending}
                     projects={projects}
                   />

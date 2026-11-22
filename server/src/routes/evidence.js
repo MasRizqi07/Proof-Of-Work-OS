@@ -2,6 +2,7 @@ const { asyncHandler } = require('../middleware/asyncHandler');
 const { errorResponse } = require('../middleware/errors');
 const { id, evidenceCreate, parse } = require('../validation');
 const { evidenceKindToDb, evidenceForApi } = require('../utils/mappers');
+const { pagination } = require('../utils/pagination');
 const { event } = require('../utils/events');
 
 function registerEvidenceRoutes(router, db) {
@@ -17,11 +18,24 @@ function registerEvidenceRoutes(router, db) {
           .status(404)
           .json(errorResponse(req, 'TASK_NOT_FOUND', 'Task not found'));
       }
-      const items = await db.evidence.findMany({
-        where: { taskId, userId: req.user.id },
-        orderBy: { createdAt: 'asc' },
+      const { page, limit, skip } = pagination(req);
+      const where = { taskId, userId: req.user.id };
+      const [items, total] = await Promise.all([
+        db.evidence.findMany({
+          where,
+          skip,
+          take: limit,
+          orderBy: { createdAt: 'desc' },
+        }),
+        db.evidence.count({ where }),
+      ]);
+      return res.json({
+        items: items.map(evidenceForApi),
+        page,
+        limit,
+        total,
+        pages: Math.ceil(total / limit) || 1,
       });
-      return res.json(items.map(evidenceForApi));
     }),
   );
 

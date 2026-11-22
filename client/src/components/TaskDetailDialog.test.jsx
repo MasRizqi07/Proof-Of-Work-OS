@@ -192,4 +192,140 @@ describe('TaskDetailDialog', () => {
 
     expect(handleDeleteRequest).toHaveBeenCalledWith(task);
   });
+
+  it('R-02: retains focus on Label input when parent component re-renders', async () => {
+    const user = userEvent.setup();
+
+    const { rerender } = renderWithQuery(
+      <TaskDetailDialog
+        isOpen={true}
+        task={task}
+        onClose={vi.fn()}
+        onUpdateTask={vi.fn()}
+        onDeleteRequest={vi.fn()}
+      />,
+    );
+
+    const labelInput = screen.getByLabelText(/Label/i);
+    await user.click(labelInput);
+    expect(document.activeElement).toBe(labelInput);
+
+    // Simulate parent re-render (e.g. tasks refetched in parent)
+    rerender(
+      <TaskDetailDialog
+        isOpen={true}
+        task={task}
+        onClose={vi.fn()}
+        onUpdateTask={vi.fn()}
+        onDeleteRequest={vi.fn()}
+      />,
+    );
+
+    // Focus must remain on the label input, not stolen by the heading
+    expect(document.activeElement).toBe(labelInput);
+  });
+
+  it('R-03: sends only diffed fields on save and displays Saved. only after success', async () => {
+    const user = userEvent.setup();
+    const handleUpdateTask = vi.fn().mockResolvedValue({ id: 'task-100' });
+
+    renderWithQuery(
+      <TaskDetailDialog
+        isOpen={true}
+        task={task}
+        onClose={vi.fn()}
+        onUpdateTask={handleUpdateTask}
+        onDeleteRequest={vi.fn()}
+      />,
+    );
+
+    const titleInput = screen.getByLabelText(/^Title/i);
+    await user.clear(titleInput);
+    await user.type(titleInput, 'Updated Title Only');
+
+    const saveBtn = screen.getByRole('button', { name: 'Save changes' });
+    await user.click(saveBtn);
+
+    expect(handleUpdateTask).toHaveBeenCalledWith({
+      id: 'task-100',
+      title: 'Updated Title Only',
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('Saved.')).toBeDefined();
+    });
+  });
+
+  it('R-03: reverts form and displays role="alert" message when server rejects update', async () => {
+    const user = userEvent.setup();
+    const handleUpdateTask = vi
+      .fn()
+      .mockRejectedValue(new Error('Server validation failed'));
+
+    renderWithQuery(
+      <TaskDetailDialog
+        isOpen={true}
+        task={task}
+        onClose={vi.fn()}
+        onUpdateTask={handleUpdateTask}
+        onDeleteRequest={vi.fn()}
+      />,
+    );
+
+    const titleInput = screen.getByLabelText(/^Title/i);
+    await user.clear(titleInput);
+    await user.type(titleInput, 'Rejected Title');
+
+    const saveBtn = screen.getByRole('button', { name: 'Save changes' });
+    await user.click(saveBtn);
+
+    // Must show inline alert
+    await waitFor(() => {
+      const alert = screen.getByRole('alert');
+      expect(alert.textContent).toContain('Server validation failed');
+    });
+
+    // Must NOT show "Saved."
+    expect(screen.queryByText('Saved.')).toBeNull();
+
+    // Must revert title input back to original value
+    expect(titleInput.value).toBe(task.title);
+  });
+
+  it('R-10: renders non-http/https URL evidence as plain text without link', async () => {
+    api.getEvidence.mockResolvedValue({
+      items: [
+        {
+          id: 'ev-3',
+          taskId: 'task-100',
+          kind: 'url',
+          label: 'Local File',
+          url: 'file:///path/to/local/report.pdf',
+          createdAt: new Date().toISOString(),
+        },
+      ],
+      total: 1,
+    });
+
+    const { container } = renderWithQuery(
+      <TaskDetailDialog
+        isOpen={true}
+        task={task}
+        onClose={vi.fn()}
+        onUpdateTask={vi.fn()}
+        onDeleteRequest={vi.fn()}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('Local File')).toBeDefined();
+    });
+
+    // Should NOT render an <a> tag for file://
+    const links = container.querySelectorAll('a[href^="file://"]');
+    expect(links.length).toBe(0);
+
+    // Should render as plain text inside code
+    expect(screen.getByText('file:///path/to/local/report.pdf')).toBeDefined();
+  });
 });

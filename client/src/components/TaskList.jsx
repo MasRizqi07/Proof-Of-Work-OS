@@ -162,8 +162,8 @@ export default function TaskList({
         task={currentDetailTask}
         projects={projects}
         onClose={() => setActiveDetailTask(null)}
-        onUpdateTask={(patch) => {
-          onUpdate(patch);
+        onUpdateTask={async (patch) => {
+          await onUpdate(patch);
           setActiveDetailTask((curr) => (curr ? { ...curr, ...patch } : null));
         }}
         onDeleteRequest={(t) => {

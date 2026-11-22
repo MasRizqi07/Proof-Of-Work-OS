@@ -11,6 +11,18 @@ function getHostname(urlStr) {
   }
 }
 
+function safeHref(urlStr) {
+  try {
+    const parsed = new URL(urlStr);
+    if (parsed.protocol === 'http:' || parsed.protocol === 'https:') {
+      return urlStr;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
 export default function TaskDetailDialog({
   isOpen,
   task,
@@ -57,6 +69,8 @@ function TaskDetailDialogModal({
   );
   const [projectId, setProjectId] = useState(task.projectId || '');
   const [taskSaved, setTaskSaved] = useState(false);
+  const [taskError, setTaskError] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
 
   // Evidence state
   const [kind, setKind] = useState('url'); // 'url' | 'note'
@@ -73,10 +87,8 @@ function TaskDetailDialogModal({
     if (isOpen) {
       if (!dialog.open) {
         dialog.showModal();
-      }
-      const timer = setTimeout(() => {
         titleHeadingRef.current?.focus();
-      }, 0);
+      }
 
       const handleBackdropClick = (e) => {
         if (e.target === dialog) {
@@ -86,7 +98,6 @@ function TaskDetailDialogModal({
       dialog.addEventListener('click', handleBackdropClick);
 
       return () => {
-        clearTimeout(timer);
         dialog.removeEventListener('click', handleBackdropClick);
       };
     } else {
@@ -135,23 +146,66 @@ function TaskDetailDialogModal({
   });
 
   const evidenceItems = evidenceQuery.data?.items || [];
-  const evidenceCount = evidenceItems.length;
+  const evidenceCount = evidenceQuery.data?.total ?? evidenceItems.length;
 
-  function handleSaveTask(e) {
+  async function handleSaveTask(e) {
     e.preventDefault();
-    if (!title.trim()) return;
-    onUpdateTask({
-      id: task.id,
-      title: title.trim(),
-      description: description.trim() || null,
-      status,
-      priority,
-      progress: Number(progress),
-      dueDate: dueDate || null,
-      projectId: projectId || null,
-    });
-    setTaskSaved(true);
-    setTimeout(() => setTaskSaved(false), 2000);
+    const trimmedTitle = title.trim();
+    if (!trimmedTitle) return;
+
+    const patch = {};
+    if (trimmedTitle !== (task.title || '')) {
+      patch.title = trimmedTitle;
+    }
+    const trimmedDesc = description.trim();
+    if (trimmedDesc !== (task.description || '')) {
+      patch.description = trimmedDesc || null;
+    }
+    if (status !== (task.status || 'todo')) {
+      patch.status = status;
+    }
+    if (priority !== (task.priority || 'medium')) {
+      patch.priority = priority;
+    }
+    if (Number(progress) !== (task.progress ?? 0)) {
+      patch.progress = Number(progress);
+    }
+    const taskDue = task.dueDate ? task.dueDate.slice(0, 10) : '';
+    if (dueDate !== taskDue) {
+      patch.dueDate = dueDate || null;
+    }
+    const taskProj = task.projectId || '';
+    if (projectId !== taskProj) {
+      patch.projectId = projectId || null;
+    }
+
+    if (Object.keys(patch).length === 0) {
+      return;
+    }
+
+    setTaskError('');
+    setTaskSaved(false);
+    setIsSaving(true);
+
+    try {
+      await onUpdateTask({ id: task.id, ...patch });
+      setTaskSaved(true);
+      setTimeout(() => setTaskSaved(false), 2000);
+    } catch (err) {
+      // Revert form values back to original task
+      setTitle(task.title || '');
+      setDescription(task.description || '');
+      setStatus(task.status || 'todo');
+      setPriority(task.priority || 'medium');
+      setProgress(task.progress ?? 0);
+      setDueDate(task.dueDate ? task.dueDate.slice(0, 10) : '');
+      setProjectId(task.projectId || '');
+      setTaskError(
+        err?.message || "Couldn't update this task. Your change was undone.",
+      );
+    } finally {
+      setIsSaving(false);
+    }
   }
 
   function handleAddEvidence(e) {
@@ -312,7 +366,7 @@ function TaskDetailDialogModal({
           </label>
 
           <div className="form-submit-row">
-            <button type="submit" className="button">
+            <button type="submit" className="button" disabled={isSaving}>
               Save changes
             </button>
             {taskSaved && (
@@ -321,6 +375,11 @@ function TaskDetailDialogModal({
               </span>
             )}
           </div>
+          {taskError && (
+            <p className="state-message error" role="alert">
+              {taskError}
+            </p>
+          )}
         </form>
 
         <hr className="dialog-divider" />
@@ -369,14 +428,20 @@ function TaskDetailDialogModal({
 
                   {item.kind === 'url' ? (
                     <div className="evidence-url-row">
-                      <a
-                        href={item.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="evidence-link font-mono"
-                      >
-                        <code>{getHostname(item.url)}</code>
-                      </a>
+                      {safeHref(item.url) ? (
+                        <a
+                          href={safeHref(item.url)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="evidence-link font-mono"
+                        >
+                          <code>{getHostname(item.url)}</code>
+                        </a>
+                      ) : (
+                        <span className="evidence-link font-mono">
+                          <code>{item.url}</code>
+                        </span>
+                      )}
                     </div>
                   ) : (
                     <pre className="evidence-note-body font-mono">

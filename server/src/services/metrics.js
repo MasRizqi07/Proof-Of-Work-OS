@@ -9,7 +9,7 @@ const { Prisma } = require('@prisma/client');
  * @returns {string} ISO date string "YYYY-MM-DD" of the Monday of that week
  */
 function weekStartForDate(utcDate, timezone) {
-  // Convert UTC timestamp to local by formatting in the target timezone
+  // Convert UTC timestamp to local date string in target timezone
   const formatter = new Intl.DateTimeFormat('en-CA', {
     timeZone: timezone,
     year: 'numeric',
@@ -18,20 +18,14 @@ function weekStartForDate(utcDate, timezone) {
   });
   const localDateStr = formatter.format(utcDate); // "YYYY-MM-DD"
 
-  // Parse it as a local date to find the day of week
+  // Parse as UTC date to prevent local Node runtime DST from skewing day math
   const [y, m, d] = localDateStr.split('-').map(Number);
-  // JS getDay(): 0=Sun, 1=Mon, ...
-  // We need ISO day: Mon=0 offset
-  const jsDate = new Date(y, m - 1, d);
-  const dow = jsDate.getDay(); // 0=Sun
+  const jsDate = new Date(Date.UTC(y, m - 1, d));
+  const dow = jsDate.getUTCDay(); // 0=Sun, 1=Mon, ..., 6=Sat
   const isoDayOffset = dow === 0 ? 6 : dow - 1; // Mon=0, Tue=1, ..., Sun=6
 
-  // Subtract offset to get Monday
-  const monday = new Date(y, m - 1, d - isoDayOffset);
-  const my = monday.getFullYear();
-  const mm = String(monday.getMonth() + 1).padStart(2, '0');
-  const md = String(monday.getDate()).padStart(2, '0');
-  return `${my}-${mm}-${md}`;
+  const mondayUtc = Date.UTC(y, m - 1, d) - isoDayOffset * 24 * 60 * 60 * 1000;
+  return new Date(mondayUtc).toISOString().slice(0, 10);
 }
 
 /**
@@ -79,30 +73,26 @@ function computeStreaks(proofWeeks, currentWeekStart) {
 }
 
 /**
- * Returns the Monday 7 days before the given Monday string.
+ * Returns the Monday 7 days before the given Monday string in UTC.
  * @param {string} weekStr - "YYYY-MM-DD"
  * @returns {string} "YYYY-MM-DD"
  */
 function previousWeek(weekStr) {
   const [y, m, d] = weekStr.split('-').map(Number);
-  const date = new Date(y, m - 1, d - 7);
-  const py = date.getFullYear();
-  const pm = String(date.getMonth() + 1).padStart(2, '0');
-  const pd = String(date.getDate()).padStart(2, '0');
-  return `${py}-${pm}-${pd}`;
+  const utc = Date.UTC(y, m - 1, d) - 7 * 24 * 60 * 60 * 1000;
+  return new Date(utc).toISOString().slice(0, 10);
 }
 
 /**
- * Returns true if weekB is exactly 7 days after weekA.
+ * Returns true if weekB is exactly 7 calendar days after weekA.
  * Both are "YYYY-MM-DD" strings representing Mondays.
+ * Computed in UTC to guarantee immunity to local DST transitions.
  */
 function isConsecutiveWeek(weekA, weekB) {
   const [ay, am, ad] = weekA.split('-').map(Number);
   const [by, bm, bd] = weekB.split('-').map(Number);
-  const a = new Date(ay, am - 1, ad);
-  const b = new Date(by, bm - 1, bd);
-  const diffDays = (b.getTime() - a.getTime()) / (1000 * 60 * 60 * 24);
-  return diffDays === 7;
+  const diffMs = Date.UTC(by, bm - 1, bd) - Date.UTC(ay, am - 1, ad);
+  return diffMs === 7 * 24 * 60 * 60 * 1000;
 }
 
 /**
@@ -122,7 +112,7 @@ function buildWeeklyRange(currentWeekStart) {
 }
 
 /**
- * Query the database and compute the full metrics summary.
+ * Query the database and compute the full metrics summary using SQL aggregation.
  *
  * @param {import('@prisma/client').PrismaClient} db
  * @param {string} userId
@@ -132,16 +122,14 @@ function buildWeeklyRange(currentWeekStart) {
 async function fetchMetricsSummary(db, userId, timezone) {
   const now = new Date();
   const currentWeekStart = weekStartForDate(now, timezone);
-
   const weekRange = buildWeeklyRange(currentWeekStart);
 
-  // Query completed tasks with evidence counts using bound parameters
-  // We need: all completed tasks for this user, to compute totals and streaks
-  const completedTaskRows = await db.$queryRaw(
+  // 1. Overall completed task count and proof count (aggregated directly in SQL)
+  const totalsRows = await db.$queryRaw(
     Prisma.sql`
       SELECT
-        t."completedAt",
-        COALESCE(e.cnt, 0)::int AS "evidenceCount"
+        COUNT(*)::int AS completed,
+        COUNT(CASE WHEN COALESCE(e.cnt, 0) > 0 THEN 1 END)::int AS "withProof"
       FROM "Task" t
       LEFT JOIN (
         SELECT "taskId", COUNT(*)::int AS cnt
@@ -154,8 +142,10 @@ async function fetchMetricsSummary(db, userId, timezone) {
         AND t."completedAt" IS NOT NULL
     `,
   );
+  const completed = totalsRows[0]?.completed ?? 0;
+  const withProof = totalsRows[0]?.withProof ?? 0;
 
-  // Count overdue open tasks
+  // 2. Overdue open tasks (aggregated directly in SQL)
   const overdueRows = await db.$queryRaw(
     Prisma.sql`
       SELECT COUNT(*)::int AS count
@@ -168,54 +158,44 @@ async function fetchMetricsSummary(db, userId, timezone) {
   );
   const overdueOpen = overdueRows[0]?.count ?? 0;
 
-  // Compute totals
-  let completed = 0;
-  let withProof = 0;
+  // 3. Weekly aggregation directly in SQL across completed tasks
+  const weeklyAggRows = await db.$queryRaw(
+    Prisma.sql`
+      SELECT
+        (date_trunc('week', t."completedAt" AT TIME ZONE 'UTC' AT TIME ZONE ${timezone}))::date::text AS "weekStart",
+        COUNT(CASE WHEN COALESCE(e.cnt, 0) > 0 THEN 1 END)::int AS "withProof",
+        COUNT(CASE WHEN COALESCE(e.cnt, 0) = 0 THEN 1 END)::int AS "withoutProof"
+      FROM "Task" t
+      LEFT JOIN (
+        SELECT "taskId", COUNT(*)::int AS cnt
+        FROM "Evidence"
+        WHERE "userId" = ${userId}::uuid
+        GROUP BY "taskId"
+      ) e ON e."taskId" = t.id
+      WHERE t."userId" = ${userId}::uuid
+        AND t.status = 'done'
+        AND t."completedAt" IS NOT NULL
+      GROUP BY 1
+    `,
+  );
 
-  // Collect proof weeks (all time) for streak computation
   const proofWeeks = new Set();
-
-  // Collect 8-week data for the weekly array
-  const weeklyWithProof = {};
-  const weeklyWithoutProof = {};
-  for (const w of weekRange) {
-    weeklyWithProof[w] = 0;
-    weeklyWithoutProof[w] = 0;
-  }
-
-  for (const row of completedTaskRows) {
-    completed++;
-    const hasEvidence = row.evidenceCount > 0;
-    if (hasEvidence) withProof++;
-
-    if (row.completedAt) {
-      const ws = weekStartForDate(new Date(row.completedAt), timezone);
-
-      // Streak: track all weeks with proof
-      if (hasEvidence) {
-        proofWeeks.add(ws);
-      }
-
-      // Weekly chart: only last 8 weeks
-      if (ws in weeklyWithProof) {
-        if (hasEvidence) {
-          weeklyWithProof[ws]++;
-        } else {
-          weeklyWithoutProof[ws]++;
-        }
-      }
+  const weeklyMap = new Map();
+  for (const row of weeklyAggRows) {
+    if (row.withProof > 0) {
+      proofWeeks.add(row.weekStart);
     }
+    weeklyMap.set(row.weekStart, row);
   }
 
   const withoutProof = completed - withProof;
   const proofRate = completed > 0 ? withProof / completed : null;
-
   const streak = computeStreaks(proofWeeks, currentWeekStart);
 
   const weekly = weekRange.map((ws) => ({
     weekStart: ws,
-    withProof: weeklyWithProof[ws] || 0,
-    withoutProof: weeklyWithoutProof[ws] || 0,
+    withProof: weeklyMap.get(ws)?.withProof ?? 0,
+    withoutProof: weeklyMap.get(ws)?.withoutProof ?? 0,
   }));
 
   return {

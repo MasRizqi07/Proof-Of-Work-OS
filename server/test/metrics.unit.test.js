@@ -130,3 +130,55 @@ test('PRD vector 5: weeks 10-19, 10-26, 11-02 → current 0, longest 3', () => {
   );
   assert.deepEqual(result, { currentWeeks: 0, longestWeeks: 3 });
 });
+
+// ───────────────────────────────────────────────────────────────
+// R-04: DST Resilience across timezones
+// ───────────────────────────────────────────────────────────────
+
+test('R-04: DST resilience across US DST start (America/New_York)', () => {
+  const origTz = process.env.TZ;
+  try {
+    process.env.TZ = 'America/New_York';
+    // 2026-03-02, 2026-03-09, 2026-03-16 crosses US DST start (Sunday, March 8, 2026)
+    const result = computeStreaks(
+      new Set(['2026-03-02', '2026-03-09', '2026-03-16']),
+      '2026-03-16',
+    );
+    assert.equal(result.longestWeeks, 3);
+    assert.equal(result.currentWeeks, 3);
+  } finally {
+    process.env.TZ = origTz;
+  }
+});
+
+test('R-04: DST resilience across US DST end (America/New_York)', () => {
+  const origTz = process.env.TZ;
+  try {
+    process.env.TZ = 'America/New_York';
+    // 2026-10-26, 2026-11-02 crosses US DST end (Sunday, Nov 1, 2026)
+    const result = computeStreaks(
+      new Set(['2026-10-26', '2026-11-02']),
+      '2026-11-02',
+    );
+    assert.equal(result.longestWeeks, 2);
+    assert.equal(result.currentWeeks, 2);
+  } finally {
+    process.env.TZ = origTz;
+  }
+});
+
+test('R-04: DST resilience in southern hemisphere (Pacific/Auckland)', () => {
+  const origTz = process.env.TZ;
+  try {
+    process.env.TZ = 'Pacific/Auckland';
+    // NZ DST ends first Sunday in April (April 5, 2026)
+    const result = computeStreaks(
+      new Set(['2026-03-30', '2026-04-06', '2026-04-13']),
+      '2026-04-13',
+    );
+    assert.equal(result.longestWeeks, 3);
+    assert.equal(result.currentWeeks, 3);
+  } finally {
+    process.env.TZ = origTz;
+  }
+});

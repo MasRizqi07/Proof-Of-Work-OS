@@ -30,6 +30,7 @@ function createApp({ db = defaultDb, authMiddleware = authRequired } = {}) {
       limit: env.RATE_LIMIT_MAX,
       standardHeaders: true,
       legacyHeaders: false,
+      skip: (req) => req.path === '/api/ping' || req.path === '/api/ready',
       handler: (req, res) =>
         res
           .status(429)

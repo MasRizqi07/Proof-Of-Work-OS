@@ -15,8 +15,11 @@ export function createTestQueryClient() {
 }
 
 export function renderWithQuery(ui, client = createTestQueryClient()) {
+  const Wrapper = ({ children }) => (
+    <QueryClientProvider client={client}>{children}</QueryClientProvider>
+  );
   return {
-    ...render(<QueryClientProvider client={client}>{ui}</QueryClientProvider>),
+    ...render(ui, { wrapper: Wrapper }),
     queryClient: client,
   };
 }

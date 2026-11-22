@@ -243,6 +243,59 @@ test('metrics: response shape matches PRD M-01', async () => {
   }
 });
 
+test('R-05: SQL aggregation golden test across multi-week dataset with other user noise', async () => {
+  await cleanDatabase();
+
+  await request(app).get('/api/user').set('Authorization', 'Bearer user-a');
+  await request(app).get('/api/user').set('Authorization', 'Bearer user-b');
+
+  // Insert noise tasks for user-b that should NOT affect user-a
+  for (let i = 0; i < 20; i++) {
+    await createCompletedTaskWithProof(
+      '22222222-2222-4222-8222-222222222222',
+      '2026-11-16T10:00:00Z',
+      true,
+    );
+  }
+
+  // Insert structured dataset for user-a:
+  // Week 2026-11-09: 2 with proof, 1 without proof
+  await createCompletedTaskWithProof(USER_A, '2026-11-09T08:00:00Z', true);
+  await createCompletedTaskWithProof(USER_A, '2026-11-10T09:00:00Z', true);
+  await createCompletedTaskWithProof(USER_A, '2026-11-11T10:00:00Z', false);
+
+  // Week 2026-11-16: 1 with proof, 2 without proof
+  await createCompletedTaskWithProof(USER_A, '2026-11-16T08:00:00Z', true);
+  await createCompletedTaskWithProof(USER_A, '2026-11-17T09:00:00Z', false);
+  await createCompletedTaskWithProof(USER_A, '2026-11-18T10:00:00Z', false);
+
+  // 1 overdue open task for user-a
+  await createOverdueTask(USER_A);
+
+  const res = await request(app)
+    .get('/api/metrics/summary')
+    .set('Authorization', 'Bearer user-a');
+
+  assert.equal(res.status, 200);
+  assert.equal(res.body.totals.completed, 6);
+  assert.equal(res.body.totals.withProof, 3);
+  assert.equal(res.body.totals.withoutProof, 3);
+  assert.equal(res.body.totals.proofRate, 0.5);
+  assert.equal(res.body.totals.overdueOpen, 1);
+
+  const w1109 = res.body.weekly.find((w) => w.weekStart === '2026-11-09');
+  if (w1109) {
+    assert.equal(w1109.withProof, 2);
+    assert.equal(w1109.withoutProof, 1);
+  }
+
+  const w1116 = res.body.weekly.find((w) => w.weekStart === '2026-11-16');
+  if (w1116) {
+    assert.equal(w1116.withProof, 1);
+    assert.equal(w1116.withoutProof, 2);
+  }
+});
+
 // Cleanup after all tests
 test.after(async () => {
   await prisma.$disconnect();

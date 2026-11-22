@@ -1,0 +1,25 @@
+{
+  "items": [
+    {
+      "completedAt": "string",
+      "createdAt": "string",
+      "description": "string",
+      "dueDate": "string",
+      "hasProof": "boolean",
+      "id": "string",
+      "overdue": "boolean",
+      "priority": "string",
+      "progress": "number",
+      "projectId": "string",
+      "proofCount": "number",
+      "status": "string",
+      "title": "string",
+      "updatedAt": "string",
+      "userId": "string"
+    }
+  ],
+  "limit": "number",
+  "page": "number",
+  "pages": "number",
+  "total": "number"
+}
