@@ -230,3 +230,23 @@ Most urgent controls:
 Do not continue adding AI or dashboard features on top of the current in-memory prototype. First convert the repository into a dependable application foundation. The current code is small enough that this can be done without a costly rewrite: preserve the React/Vite and Express choices, introduce clear boundaries, add persistence/auth/validation/testing, and then iterate on product features.
 
 The project is worth continuing, but it should be managed as a **foundation hardening + MVP definition initiative**, not as a feature-complete website. A realistic next milestone is a secure, persisted, single-user/team beta with automated quality gates; multi-user scale and AI coaching should follow after that baseline is proven.
+
+---
+
+## 9. Post-Hardening Verification and Audit Reconciliation (2026-11-22)
+
+Following the execution of Phases 1 through 6R on branch `feat/proof-foundation`, the initial findings from Section 2A have been re-measured against raw execution data:
+
+| Metric / Gate                  | Section 2A Claim | Actual Measured Baseline (Pre-Work) | Status at HEAD (`feat/proof-foundation`) | Verification Evidence                                 |
+| :----------------------------- | :--------------- | :---------------------------------- | :--------------------------------------- | :---------------------------------------------------- |
+| `npm run format:check`         | Stated PASS      | FAIL (11 files unformatted)         | **PASS**                                 | `All matched files use Prettier code style!`          |
+| `npm run lint`                 | Stated PASS      | FAIL (`URLSearchParams` no-undef)   | **PASS**                                 | ESLint 9 flat config passes with 0 errors             |
+| `npm audit --audit-level=high` | Stated 0 vuln    | FAIL (2 high, 3 moderate)           | **PASS**                                 | 0 vulnerabilities via `overrides`                     |
+| Server unit tests              | 4 tests          | 7 tests                             | **PASS (31 tests)**                      | `node --test` in `server/test/`                       |
+| Server integration tests       | None             | None                                | **PASS (28 tests)**                      | Isolation, lifecycle, evidence, metrics, contracts    |
+| Client unit tests              | 4 tests          | 6 tests                             | **PASS (38 tests)**                      | Vitest in `client/` covering components and contracts |
+| Client bundle size             | Not measured     | 79.95 kB gzip                       | **PASS (79.95 kB)**                      | Well within 150 kB NFR budget                         |
+| Database integrity             | In-memory arrays | PostgreSQL migrations 0001–0004     | **PASS**                                 | CHECK constraints for progress, status/completedAt    |
+| Contract safety                | None             | None                                | **PASS**                                 | Cross-boundary contract fixtures recorded & verified  |
+
+All discrepancies noted in the initial audit report have been resolved through measured implementation.

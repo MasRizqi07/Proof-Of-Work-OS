@@ -54,49 +54,48 @@ in PostgreSQL and uses Supabase Auth for identity.
 
 ## API
 
-`GET /api/ping` is public and returns `{ "status": "ok", "requestId": "..." }`.
-All other `/api/*` routes require `Authorization: Bearer <Supabase access
-token>`. Successful authentication creates or updates the corresponding
-database user.
+`GET /api/ping` and `GET /api/ready` are public health probes that bypass rate limiting. All other `/api/*` routes require `Authorization: Bearer <Supabase access token>`. Successful authentication creates or updates the corresponding database user.
 
-The authenticated API currently exposes:
+The API exposes:
 
-| Method                   | Route                      | Purpose                                   |
-| ------------------------ | -------------------------- | ----------------------------------------- |
-| `GET`                    | `/api/user`                | Current user, profile, and basic metrics  |
-| `PATCH`                  | `/api/user/profile`        | Update user name, bio, and focus          |
-| `GET`                    | `/api/activities`          | Paginated user activity event feed        |
-| `GET`, `POST`            | `/api/projects`            | List or create owned projects             |
-| `GET`, `PATCH`, `DELETE` | `/api/projects/:projectId` | Read, update, or archive an owned project |
-| `GET`, `POST`            | `/api/tasks`               | List or create owned tasks                |
-| `GET`                    | `/api/tasks/:taskId`       | Read an owned task                        |
-| `PATCH`, `DELETE`        | `/api/tasks/:taskId`       | Update or delete an owned task            |
+| Method                   | Route                                     | Purpose                                                              |
+| ------------------------ | ----------------------------------------- | -------------------------------------------------------------------- |
+| `GET`                    | `/api/ping`                               | Service liveness check (public, request ID tracking)                 |
+| `GET`                    | `/api/ready`                              | Database readiness check (`SELECT 1` on PostgreSQL)                  |
+| `GET`                    | `/api/user`                               | Current user, profile, and overview metrics                          |
+| `PATCH`                  | `/api/user/profile`                       | Update user name, bio, and focus                                     |
+| `GET`                    | `/api/activities`                         | Paginated user activity event feed                                   |
+| `GET`, `POST`            | `/api/projects`                           | List (with search, pagination, `taskCounts`) or create owned project |
+| `GET`, `PATCH`, `DELETE` | `/api/projects/:projectId`                | Read, update, or soft-archive an owned project                       |
+| `GET`, `POST`            | `/api/tasks`                              | List (with `status`, `projectId`, `hasProof`, paging) or create task |
+| `GET`, `PATCH`, `DELETE` | `/api/tasks/:taskId`                      | Read, update (syncs `completedAt`), or delete an owned task          |
+| `GET`, `POST`            | `/api/tasks/:taskId/evidence`             | List attached proof (paginated, desc) or attach proof (max 20)       |
+| `DELETE`                 | `/api/tasks/:taskId/evidence/:evidenceId` | Remove attached proof (cascades automatically on task deletion)      |
+| `GET`                    | `/api/metrics/summary`                    | Timezone-aware metrics (totals, 5-vector streak, 8-week array)       |
 
 List endpoints support pagination (`page`, `limit`); projects also support
-`search`, and tasks support `status` and `projectId`. JSON errors include an
+`search`, and tasks support `status`, `projectId`, and `hasProof`. JSON errors include an
 error code/message and request ID. Task `status` values are `todo`,
 `in-progress`, `done`, and `cancelled`; priorities are `low`, `medium`,
 `high`, and `urgent`. Projects use `active`, `paused`, or `completed` status
 values. Project deletion is a soft archive.
 Completing a task records `completedAt`; moving it out of `done` clears that
 timestamp. Meaningful project/task mutations also append an activity event.
-The user response includes completed-task, completed-project, and
-weekly-activity metrics. The API does not expose arbitrary database queries.
+The metrics summary aggregates per week in SQL and computes pure streaks across DST boundaries.
 
-The root dependency overrides `deepmerge-ts` to `8.0.2` because Prisma's
-configuration dependency otherwise resolves a vulnerable pre-8 release. This
-override is validated by the Prisma generation/validation and test gates.
+Root dependency overrides lock `deepmerge-ts` to `8.0.2` and `effect` to `>=3.22.1` to resolve transitive dependency vulnerabilities in Prisma configuration tools. These overrides are validated by the Prisma generation and test gates.
 Frontend `dist` output is intentionally ignored because CI/CD builds the
 artifact from source.
 
 ## Verification and CI
 
-Run the same mandatory gates locally:
+Run the mandatory gates locally:
 
 ```bash
 npm run format:check
 npm run lint
 npm test
+npm --workspace server run test:integration
 npm run build
 npm audit --audit-level=high
 ```
@@ -104,24 +103,16 @@ npm audit --audit-level=high
 GitHub Actions starts a disposable PostgreSQL 16 service, generates Prisma,
 applies all committed migrations with `prisma migrate deploy`, verifies that
 the migration state is clean, and runs every gate above. The audit is
-blocking: high- and critical-severity advisories fail CI; there is no
-`continue-on-error` security bypass. CI uses only ephemeral test data and
-example Supabase configuration; it does not test authenticated production
-flows.
+blocking: high- and critical-severity advisories fail CI.
 
 ## Current limitations
 
 - A real Supabase project and access token are required for authenticated
-  development and end-to-end testing; the CI token-free tests cover only
-  health and authentication rejection behavior.
-- The UI has a demo mode when Supabase browser settings are absent. It does
-  not provide a local identity provider.
-- “AI career system” and analytics are currently product/UI foundations:
-  there is no AI provider integration, background job system, or persisted
-  points/streak calculation yet.
-- The API has no versioned contract/OpenAPI document, refresh-token endpoint,
-  role administration, or realtime subscriptions. Project deletion is a soft
-  archive; task deletion is permanent.
-- Production deployment, secret management, backups, migrations, and
-  observability must be supplied by the hosting environment. Never use the CI
-  database URL or example Supabase URL for production.
+  browser usage; without Supabase configuration, the frontend renders a
+  configuration required screen.
+- AI coach recommendations, GitHub OAuth PR ownership linking, file uploads,
+  and unauthenticated public profiles are deferred to future phases.
+- Project deletion is a soft archive; task deletion is permanent and
+  cascades all attached evidence items.
+- Production deployment, secret management, backups, and observability
+  must be supplied by the hosting environment as documented in `DEPLOY.md`.
