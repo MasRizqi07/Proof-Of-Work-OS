@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import StateMessage from './StateMessage';
 import Icon from './Icon';
 import TaskDetailDialog from './TaskDetailDialog';
@@ -13,6 +13,8 @@ export default function TaskList({
 }) {
   const [activeDetailTask, setActiveDetailTask] = useState(null);
   const [activeDeleteTask, setActiveDeleteTask] = useState(null);
+  const detailTriggerRef = useRef(null);
+  const deleteTriggerRef = useRef(null);
 
   if (!tasks.length) {
     return (
@@ -82,7 +84,10 @@ export default function TaskList({
                       <button
                         type="button"
                         className="button button-secondary button-xs"
-                        onClick={() => setActiveDetailTask(task)}
+                        onClick={(e) => {
+                          detailTriggerRef.current = e.currentTarget;
+                          setActiveDetailTask(task);
+                        }}
                       >
                         Add proof
                       </button>
@@ -134,7 +139,10 @@ export default function TaskList({
                   <button
                     type="button"
                     className="button button-secondary button-sm"
-                    onClick={() => setActiveDetailTask(task)}
+                    onClick={(e) => {
+                      detailTriggerRef.current = e.currentTarget;
+                      setActiveDetailTask(task);
+                    }}
                     aria-label={`Open details for ${task.title}`}
                   >
                     Details
@@ -144,7 +152,10 @@ export default function TaskList({
                     type="button"
                     className="icon-button"
                     disabled={isDeleting}
-                    onClick={() => setActiveDeleteTask(task)}
+                    onClick={(e) => {
+                      deleteTriggerRef.current = e.currentTarget;
+                      setActiveDeleteTask(task);
+                    }}
                     aria-label={`Delete ${task.title}`}
                   >
                     <Icon name="trash" size={14} />
@@ -161,7 +172,12 @@ export default function TaskList({
         isOpen={Boolean(currentDetailTask)}
         task={currentDetailTask}
         projects={projects}
-        onClose={() => setActiveDetailTask(null)}
+        onClose={() => {
+          setActiveDetailTask(null);
+          setTimeout(() => {
+            detailTriggerRef.current?.focus?.();
+          }, 0);
+        }}
         onUpdateTask={async (patch) => {
           await onUpdate(patch);
           setActiveDetailTask((curr) => (curr ? { ...curr, ...patch } : null));
@@ -176,7 +192,12 @@ export default function TaskList({
       <DeleteConfirmDialog
         isOpen={Boolean(activeDeleteTask)}
         task={activeDeleteTask}
-        onClose={() => setActiveDeleteTask(null)}
+        onClose={() => {
+          setActiveDeleteTask(null);
+          setTimeout(() => {
+            deleteTriggerRef.current?.focus?.();
+          }, 0);
+        }}
         onConfirm={(id) => {
           onDelete(id);
           setActiveDeleteTask(null);

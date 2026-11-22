@@ -41,6 +41,20 @@ module.exports = [
     },
   },
   {
+    files: ['e2e/**/*.js'],
+    languageOptions: {
+      ecmaVersion: 2022,
+      sourceType: 'commonjs',
+      globals: {
+        ...globals.node,
+        ...globals.browser,
+      },
+    },
+    rules: {
+      'no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+    },
+  },
+  {
     files: ['client/**/*.{js,jsx}'],
     languageOptions: {
       ecmaVersion: 2022,

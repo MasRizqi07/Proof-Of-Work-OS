@@ -250,3 +250,16 @@ Following the execution of Phases 1 through 6R on branch `feat/proof-foundation`
 | Contract safety                | None             | None                                | **PASS**                                 | Cross-boundary contract fixtures recorded & verified  |
 
 All discrepancies noted in the initial audit report have been resolved through measured implementation.
+
+---
+
+## 10. Phase 8 (Browser E2E & Axe-core Accessibility) Verification (2026-11-22)
+
+Executed on branch `feat/proof-foundation` fulfilling criteria **V-01**, **V-02**, **V-03**, and release gate **R-18**:
+
+| Requirement                      | Suite / Spec                | Scope                                                                                                                                                                                                                                          | Measured Result                           | Evidence                                   |
+| :------------------------------- | :-------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :---------------------------------------- | :----------------------------------------- |
+| **V-01** (Browser Workflow)      | `e2e/workflow.spec.js`      | Sign in, create task, mark done ("No proof yet"), attach link proof ("With proof · 1"), attach note proof ("2"), delete one proof, theme toggle & reload persistence, keyboard navigation & focus return, delete task with confirmation dialog | **PASS (1/1 test, 2.8s)**                 | Chrome headless real browser execution log |
+| **V-02** (Accessibility)         | `e2e/accessibility.spec.js` | Axe-core WCAG 2.1/2.2 AA audit on Dashboard, TaskDetailDialog, and DeleteConfirmDialog across Light and Dark themes                                                                                                                            | **PASS (2/2 tests, 0 severe violations)** | Zero `serious` or `critical` violations    |
+| **V-03** (Responsive & Overflow) | `e2e/responsive.spec.js`    | Horizontal overflow test (`scrollWidth <= clientWidth`) and visual screenshot capture at 320, 480, 768, 1024, 1440, 1920 px in Light and Dark themes                                                                                           | **PASS (12/12 tests, 0 overflow)**        | 12 screenshots saved to `e2e/screenshots/` |
+| **R-18** (E2E Release Gate)      | `npm run test:e2e`          | Complete suite of 15 tests across 3 specs                                                                                                                                                                                                      | **PASS (15/15 passed in 29.2s)**          | Exit code 0, 0 failures                    |
