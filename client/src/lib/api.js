@@ -107,13 +107,14 @@ export const api = {
     }),
   getActivities: ({ signal, page } = {}) =>
     request(`/activities${page ? `?page=${page}` : ''}`, { signal }),
-  getTasks: ({ signal, status, projectId, hasProof } = {}) => {
+  getTasks: ({ signal, status, projectId, hasProof, q } = {}) => {
     const params = new URLSearchParams();
     if (status) params.set('status', status);
     if (projectId) params.set('projectId', projectId);
     if (hasProof !== undefined && hasProof !== null && hasProof !== '') {
       params.set('hasProof', String(hasProof));
     }
+    if (q) params.set('q', q);
     const qs = params.toString();
     return request(`/tasks${qs ? `?${qs}` : ''}`, { signal });
   },

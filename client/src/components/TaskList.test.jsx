@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { screen } from '@testing-library/react';
+import { screen, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import TaskList from './TaskList';
 import { renderWithQuery } from '../test/utils';
@@ -110,5 +110,86 @@ describe('TaskList proof badges and interactions', () => {
     expect(
       screen.getByRole('heading', { name: 'Delete this task?' }),
     ).toBeDefined();
+  });
+
+  it('renders typographical quote empty search state when no tasks match query', () => {
+    renderWithQuery(
+      <TaskList
+        tasks={[]}
+        searchQuery="architect"
+        onDelete={vi.fn()}
+        onUpdate={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByText('No tasks match “architect”')).toBeDefined();
+  });
+
+  it('sets aria-busy="true" and style opacity: 0.7 while status update is in flight', async () => {
+    const user = userEvent.setup();
+    let resolveUpdate;
+    const pendingPromise = new Promise((resolve) => {
+      resolveUpdate = resolve;
+    });
+    const onUpdate = vi.fn().mockImplementation(() => pendingPromise);
+
+    const { container } = renderWithQuery(
+      <TaskList
+        tasks={[baseTasks[0]]}
+        onDelete={vi.fn()}
+        onUpdate={onUpdate}
+      />,
+    );
+
+    const card = container.querySelector('.task-card');
+    expect(card.getAttribute('aria-busy')).toBeNull();
+
+    const statusSelect = screen.getByLabelText(
+      'Status for Completed with Proof',
+    );
+    await user.selectOptions(statusSelect, 'in-progress');
+
+    expect(onUpdate).toHaveBeenCalledWith({
+      id: 'task-1',
+      status: 'in-progress',
+    });
+
+    // While in flight
+    expect(card.getAttribute('aria-busy')).toBe('true');
+    expect(card.style.opacity).toBe('0.7');
+
+    // Resolve update
+    await act(async () => {
+      resolveUpdate({});
+      await pendingPromise;
+    });
+
+    expect(card.getAttribute('aria-busy')).toBeNull();
+  });
+
+  it('renders inline role="alert" message when onUpdate rejects and rolls back', async () => {
+    const user = userEvent.setup();
+    const onUpdate = vi
+      .fn()
+      .mockRejectedValue(new Error('Internal server error'));
+
+    renderWithQuery(
+      <TaskList
+        tasks={[baseTasks[0]]}
+        onDelete={vi.fn()}
+        onUpdate={onUpdate}
+      />,
+    );
+
+    const statusSelect = screen.getByLabelText(
+      'Status for Completed with Proof',
+    );
+    await user.selectOptions(statusSelect, 'in-progress');
+
+    const alert = await screen.findByRole('alert');
+    expect(alert).toBeDefined();
+    expect(alert.textContent).toContain(
+      "Couldn't update this task. Your change was undone.",
+    );
   });
 });

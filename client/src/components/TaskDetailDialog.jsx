@@ -95,10 +95,16 @@ function TaskDetailDialogModal({
           onClose();
         }
       };
+      const handleCancel = (e) => {
+        e.preventDefault();
+        onClose();
+      };
       dialog.addEventListener('click', handleBackdropClick);
+      dialog.addEventListener('cancel', handleCancel);
 
       return () => {
         dialog.removeEventListener('click', handleBackdropClick);
+        dialog.removeEventListener('cancel', handleCancel);
       };
     } else {
       if (dialog.open) {

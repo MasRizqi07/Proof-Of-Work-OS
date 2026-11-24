@@ -87,6 +87,7 @@ const evidenceCreate = z.discriminatedUnion('kind', [
 
 const hasProofQuery = z.enum(['true', 'false']);
 const searchQuery = z.string().trim().max(100);
+const taskSearchQuery = z.string().trim().min(1).max(100);
 
 function parse(schema, value) {
   const result = schema.safeParse(value);
@@ -116,5 +117,6 @@ module.exports = {
   evidenceCreate,
   hasProofQuery,
   searchQuery,
+  taskSearchQuery,
   parse,
 };

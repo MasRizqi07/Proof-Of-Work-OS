@@ -6,6 +6,7 @@ const {
   taskCreate,
   taskUpdate,
   hasProofQuery,
+  taskSearchQuery,
   parse,
 } = require('../validation');
 const { statusToDb, priorityToDb, taskForApi } = require('../utils/mappers');
@@ -14,11 +15,18 @@ const { event } = require('../utils/events');
 
 const taskStatusQuery = z.enum(['todo', 'in-progress', 'done', 'cancelled']);
 
+function escapeLike(str) {
+  return str.replace(/([%_\\])/g, '\\$1');
+}
+
 function registerTaskRoutes(router, db) {
   router.get(
     '/api/tasks',
     asyncHandler(async (req, res) => {
       const { page, limit, skip } = pagination(req);
+      const rawSearch =
+        req.query.q !== undefined ? parse(taskSearchQuery, req.query.q) : null;
+      const search = rawSearch ? escapeLike(rawSearch) : null;
       const where = {
         userId: req.user.id,
         ...(req.query.status
@@ -35,6 +43,14 @@ function registerTaskRoutes(router, db) {
                 parse(hasProofQuery, req.query.hasProof) === 'true'
                   ? { some: {} }
                   : { none: {} },
+            }
+          : {}),
+        ...(search
+          ? {
+              OR: [
+                { title: { contains: search, mode: 'insensitive' } },
+                { description: { contains: search, mode: 'insensitive' } },
+              ],
             }
           : {}),
       };

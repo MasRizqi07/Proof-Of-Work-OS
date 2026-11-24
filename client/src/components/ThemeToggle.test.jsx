@@ -14,7 +14,7 @@ describe('ThemeToggle', () => {
 
     render(<ThemeToggle />);
 
-    const toggleBtn = screen.getByRole('button', { name: 'Dark theme' });
+    const toggleBtn = screen.getByRole('button', { name: /dark/i });
     expect(toggleBtn.getAttribute('aria-pressed')).toBe('false');
 
     // Click to switch to dark

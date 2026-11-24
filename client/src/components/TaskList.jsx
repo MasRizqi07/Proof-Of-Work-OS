@@ -10,13 +10,28 @@ export default function TaskList({
   onUpdate,
   isDeleting = false,
   projects = [],
+  searchQuery = '',
+  activeDetailTask: controlledDetailTask,
+  onOpenDetail,
+  onCloseDetail,
 }) {
-  const [activeDetailTask, setActiveDetailTask] = useState(null);
+  const [internalDetailTask, setInternalDetailTask] = useState(null);
+  const activeDetailTask =
+    controlledDetailTask !== undefined
+      ? controlledDetailTask
+      : internalDetailTask;
+  const setActiveDetailTask = onOpenDetail || setInternalDetailTask;
   const [activeDeleteTask, setActiveDeleteTask] = useState(null);
+  const [pendingTaskIds, setPendingTaskIds] = useState(new Set());
+  const [inlineErrors, setInlineErrors] = useState({});
+
   const detailTriggerRef = useRef(null);
   const deleteTriggerRef = useRef(null);
 
   if (!tasks.length) {
+    if (searchQuery) {
+      return <StateMessage>No tasks match “{searchQuery}”</StateMessage>;
+    }
     return (
       <StateMessage>
         No tasks yet. Add the first one to get moving.
@@ -32,6 +47,56 @@ export default function TaskList({
     ? tasks.find((t) => t.id === activeDetailTask.id) || activeDetailTask
     : null;
 
+  const handleStatusChange = async (task, newStatus) => {
+    setPendingTaskIds((prev) => new Set(prev).add(task.id));
+    setInlineErrors((prev) => {
+      const next = { ...prev };
+      delete next[task.id];
+      return next;
+    });
+
+    try {
+      await onUpdate({ id: task.id, status: newStatus });
+    } catch {
+      setInlineErrors((prev) => ({
+        ...prev,
+        [task.id]: "Couldn't update this task. Your change was undone.",
+      }));
+    } finally {
+      setPendingTaskIds((prev) => {
+        const next = new Set(prev);
+        next.delete(task.id);
+        return next;
+      });
+    }
+  };
+
+  const openDetail = (task, triggerEl) => {
+    detailTriggerRef.current = triggerEl;
+    if (
+      typeof document !== 'undefined' &&
+      document.startViewTransition &&
+      !window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    ) {
+      document.startViewTransition(() => {
+        setActiveDetailTask(task);
+      });
+    } else {
+      setActiveDetailTask(task);
+    }
+  };
+
+  const closeDetail = () => {
+    if (onCloseDetail) {
+      onCloseDetail();
+    } else {
+      setInternalDetailTask(null);
+    }
+    setTimeout(() => {
+      detailTriggerRef.current?.focus?.();
+    }, 0);
+  };
+
   return (
     <>
       <div className="task-list">
@@ -40,9 +105,16 @@ export default function TaskList({
           const projectName = task.projectId
             ? projectMap.get(task.projectId)
             : null;
+          const isTaskBusy = pendingTaskIds.has(task.id);
+          const inlineError = inlineErrors[task.id];
 
           return (
-            <article key={task.id} className="task-card">
+            <article
+              key={task.id}
+              className="task-card"
+              aria-busy={isTaskBusy ? 'true' : undefined}
+              style={isTaskBusy ? { opacity: 0.7 } : undefined}
+            >
               <div className="task-card-header">
                 <div>
                   <h3 className="task-title">{task.title}</h3>
@@ -84,10 +156,7 @@ export default function TaskList({
                       <button
                         type="button"
                         className="button button-secondary button-xs"
-                        onClick={(e) => {
-                          detailTriggerRef.current = e.currentTarget;
-                          setActiveDetailTask(task);
-                        }}
+                        onClick={(e) => openDetail(task, e.currentTarget)}
                       >
                         Add proof
                       </button>
@@ -111,6 +180,13 @@ export default function TaskList({
                 </div>
               </div>
 
+              {inlineError && (
+                <div role="alert" className="task-inline-alert">
+                  <Icon name="alert" size={14} />
+                  <span>{inlineError}</span>
+                </div>
+              )}
+
               <div className="task-meta">
                 <span className="task-priority-tag">
                   {task.priority} priority
@@ -126,9 +202,8 @@ export default function TaskList({
                   <select
                     aria-label={`Status for ${task.title}`}
                     value={task.status}
-                    onChange={(e) =>
-                      onUpdate({ id: task.id, status: e.target.value })
-                    }
+                    disabled={isTaskBusy}
+                    onChange={(e) => handleStatusChange(task, e.target.value)}
                   >
                     <option value="todo">todo</option>
                     <option value="in-progress">in-progress</option>
@@ -139,10 +214,7 @@ export default function TaskList({
                   <button
                     type="button"
                     className="button button-secondary button-sm"
-                    onClick={(e) => {
-                      detailTriggerRef.current = e.currentTarget;
-                      setActiveDetailTask(task);
-                    }}
+                    onClick={(e) => openDetail(task, e.currentTarget)}
                     aria-label={`Open details for ${task.title}`}
                   >
                     Details
@@ -151,7 +223,7 @@ export default function TaskList({
                   <button
                     type="button"
                     className="icon-button"
-                    disabled={isDeleting}
+                    disabled={isDeleting || isTaskBusy}
                     onClick={(e) => {
                       deleteTriggerRef.current = e.currentTarget;
                       setActiveDeleteTask(task);
@@ -172,12 +244,7 @@ export default function TaskList({
         isOpen={Boolean(currentDetailTask)}
         task={currentDetailTask}
         projects={projects}
-        onClose={() => {
-          setActiveDetailTask(null);
-          setTimeout(() => {
-            detailTriggerRef.current?.focus?.();
-          }, 0);
-        }}
+        onClose={closeDetail}
         onUpdateTask={async (patch) => {
           await onUpdate(patch);
           setActiveDetailTask((curr) => (curr ? { ...curr, ...patch } : null));

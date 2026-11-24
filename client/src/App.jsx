@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { api } from './lib/api';
 import { isSupabaseConfigured } from './lib/supabase';
 import { useAuth } from './context/AuthContext';
 import { useTasks } from './hooks/useTasks';
 import { useProjects } from './hooks/useProjects';
+import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import AuthPanel from './components/AuthPanel';
 import StateMessage from './components/StateMessage';
 import MetricsPanel from './components/MetricsPanel';
@@ -15,8 +16,11 @@ import Projects from './components/Projects';
 import ProfileCard from './components/ProfileCard';
 import ActivityFeed from './components/ActivityFeed';
 import ThemeToggle from './components/ThemeToggle';
+import CommandPalette from './components/CommandPalette';
+import ShortcutsHelpDialog from './components/ShortcutsHelpDialog';
 import OfflineBanner from './components/OfflineBanner';
 import ConfigRequired from './components/ConfigRequired';
+import Icon from './components/Icon';
 
 function getMissingConfig() {
   const missing = [];
@@ -43,6 +47,12 @@ function AuthenticatedApp() {
   const [statusFilter, setStatusFilter] = useState('');
   const [projectFilter, setProjectFilter] = useState('');
   const [proofFilter, setProofFilter] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isPaletteOpen, setIsPaletteOpen] = useState(false);
+  const [isHelpOpen, setIsHelpOpen] = useState(false);
+  const [activeDetailTask, setActiveDetailTask] = useState(null);
+
+  const searchInputRef = useRef(null);
 
   const userQuery = useQuery({
     queryKey: ['user'],
@@ -57,6 +67,7 @@ function AuthenticatedApp() {
       status: statusFilter || undefined,
       projectId: projectFilter || undefined,
       hasProof: proofFilter || undefined,
+      q: searchQuery || undefined,
     },
   );
   const { projectsQuery, createProject, updateProject, deleteProject } =
@@ -64,6 +75,25 @@ function AuthenticatedApp() {
 
   const user = userQuery.data || null;
   const projects = projectsQuery.data?.items || projectsQuery.data || [];
+  const loadedTasks = tasksQuery.data?.items || tasksQuery.data || [];
+
+  // Register global shortcuts (PRD K-01, K-02)
+  useKeyboardShortcuts({
+    onOpenPalette: () => setIsPaletteOpen(true),
+    onFocusNewTask: () => {
+      const el = document.getElementById('new-task-title');
+      el?.focus();
+    },
+    onFocusSearch: () => {
+      searchInputRef.current?.focus();
+    },
+    onToggleTheme: () => {
+      const btn = document.querySelector('.theme-toggle');
+      btn?.click();
+    },
+    onOpenHelp: () => setIsHelpOpen(true),
+    isEnabled: authenticated,
+  });
 
   return (
     <>
@@ -76,7 +106,33 @@ function AuthenticatedApp() {
           <div>
             <div className="header-eyebrow-row">
               <p className="eyebrow">Proof of Work OS</p>
-              <ThemeToggle />
+              <div className="header-quick-actions">
+                {authenticated && (
+                  <>
+                    <button
+                      type="button"
+                      className="button button-ghost button-sm header-action-btn"
+                      onClick={() => setIsPaletteOpen(true)}
+                      aria-keyshortcuts="Control+k Meta+k"
+                    >
+                      <Icon name="command" size={14} />
+                      <span className="hide-on-mobile">Palette</span>
+                      <kbd aria-hidden="true">Ctrl+K</kbd>
+                    </button>
+                    <button
+                      type="button"
+                      className="button button-ghost button-sm header-action-btn"
+                      onClick={() => setIsHelpOpen(true)}
+                      aria-keyshortcuts="?"
+                    >
+                      <Icon name="help" size={14} />
+                      <span className="hide-on-mobile">Shortcuts</span>
+                      <kbd aria-hidden="true">?</kbd>
+                    </button>
+                  </>
+                )}
+                <ThemeToggle />
+              </div>
             </div>
             <h1>Make progress visible.</h1>
             <p>
@@ -162,6 +218,9 @@ function AuthenticatedApp() {
                   proofFilter={proofFilter}
                   onProofChange={setProofFilter}
                   projects={projects}
+                  searchValue={searchQuery}
+                  onSearchChange={setSearchQuery}
+                  searchInputRef={searchInputRef}
                 />
                 {createTask.isError && (
                   <StateMessage>
@@ -193,11 +252,15 @@ function AuthenticatedApp() {
                   </StateMessage>
                 ) : (
                   <TaskList
-                    tasks={tasksQuery.data?.items || tasksQuery.data || []}
+                    tasks={loadedTasks}
                     onDelete={(id) => deleteTask.mutate(id)}
                     onUpdate={(task) => updateTask.mutateAsync(task)}
                     isDeleting={deleteTask.isPending}
                     projects={projects}
+                    searchQuery={searchQuery}
+                    activeDetailTask={activeDetailTask}
+                    onOpenDetail={setActiveDetailTask}
+                    onCloseDetail={() => setActiveDetailTask(null)}
                   />
                 )}
               </section>
@@ -220,6 +283,29 @@ function AuthenticatedApp() {
           </main>
         )}
       </div>
+
+      {/* Global Modals for Interaction Layer (Fase 12) */}
+      <CommandPalette
+        isOpen={isPaletteOpen}
+        onClose={() => setIsPaletteOpen(false)}
+        tasks={loadedTasks}
+        onNewTask={() => {
+          const el = document.getElementById('new-task-title');
+          el?.focus();
+        }}
+        onFilterProof={(val) => setProofFilter(val)}
+        onToggleTheme={() => {
+          const btn = document.querySelector('.theme-toggle');
+          btn?.click();
+        }}
+        onOpenHelp={() => setIsHelpOpen(true)}
+        onSelectTask={(task) => setActiveDetailTask(task)}
+      />
+
+      <ShortcutsHelpDialog
+        isOpen={isHelpOpen}
+        onClose={() => setIsHelpOpen(false)}
+      />
     </>
   );
 }

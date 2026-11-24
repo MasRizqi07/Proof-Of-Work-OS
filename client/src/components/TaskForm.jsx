@@ -21,9 +21,10 @@ export default function TaskForm({ onCreate, isPending, projects }) {
 
   return (
     <form className="task-form" onSubmit={submit}>
-      <label>
-        Title{' '}
+      <label htmlFor="new-task-title">
+        <span>Title</span> <kbd aria-hidden="true">n</kbd>
         <input
+          id="new-task-title"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           placeholder="New task title"
