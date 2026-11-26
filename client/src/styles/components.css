@@ -1363,3 +1363,340 @@ kbd {
   border: 1px solid var(--color-danger-fg);
   border-radius: var(--radius-control);
 }
+
+/* Phase 13 Insight Layer: Heatmap & Proof Report */
+.proof-heatmap-figure {
+  margin: var(--space-5) 0 0;
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.heatmap-layout {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  max-width: 100%;
+  min-width: 0;
+}
+
+.heatmap-day-labels {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+  user-select: none;
+}
+
+.heatmap-day-labels > span {
+  height: 12px;
+  line-height: 12px;
+}
+
+.heatmap-month-spacer {
+  height: 16px;
+  margin-bottom: 1px;
+}
+
+.heatmap-scroll-wrap {
+  flex: 1;
+  min-width: 0;
+  overflow-x: auto;
+  padding: 2px;
+}
+
+.heatmap-months {
+  display: grid;
+  grid-template-columns: repeat(var(--heatmap-cols, 26), 12px);
+  column-gap: 3px;
+  height: 16px;
+  margin-bottom: 4px;
+  width: max-content;
+}
+
+.heatmap-month-label {
+  font-size: var(--text-xs);
+  line-height: 16px;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+.heatmap-grid {
+  display: flex;
+  flex-direction: column;
+  row-gap: 3px;
+  width: max-content;
+}
+
+.heatmap-row {
+  display: grid;
+  grid-template-columns: repeat(var(--heatmap-cols, 26), 12px);
+  column-gap: 3px;
+}
+
+.heatmap-cell,
+.heatmap-cell-spacer {
+  width: 12px;
+  height: 12px;
+  padding: 0;
+  border-radius: 2px;
+  position: relative;
+  display: block;
+}
+
+.heatmap-cell {
+  border: 0;
+  cursor: pointer;
+  background-color: var(--color-heat-0);
+}
+
+.heatmap-cell.level-0,
+.heatmap-swatch.level-0 {
+  background-color: var(--color-heat-0);
+  border: 1px solid var(--color-border);
+}
+
+.heatmap-cell.level-1,
+.heatmap-swatch.level-1 {
+  background-color: var(--color-heat-1);
+}
+
+.heatmap-cell.level-2,
+.heatmap-swatch.level-2 {
+  background-color: var(--color-heat-2);
+}
+
+.heatmap-cell.level-3,
+.heatmap-swatch.level-3 {
+  background-color: var(--color-heat-3);
+}
+
+.heatmap-cell.level-4,
+.heatmap-swatch.level-4 {
+  background-color: var(--color-heat-4);
+}
+
+.heatmap-cell.is-today {
+  outline: 1px dashed var(--color-accent);
+  outline-offset: 1px;
+}
+
+.heatmap-cell:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-offset);
+  z-index: 1;
+}
+
+.heatmap-noproof-dot {
+  position: absolute;
+  top: 1px;
+  right: 1px;
+  width: 4px;
+  height: 4px;
+  border-radius: var(--radius-pill);
+  background-color: var(--color-noproof-fg);
+}
+
+.heatmap-meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.heatmap-tooltip {
+  margin: 0;
+  min-height: 1.4em;
+  font-size: var(--text-xs);
+  color: var(--color-text-secondary);
+}
+
+.heatmap-legend {
+  gap: var(--space-1);
+  flex-wrap: wrap;
+}
+
+.heatmap-swatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+  display: inline-block;
+  position: relative;
+}
+
+/* Proof Report Page (/report) */
+.report-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.report-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.report-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.report-range-group {
+  display: inline-flex;
+  gap: var(--space-1);
+  padding: var(--space-1);
+  background-color: var(--color-surface-sunken);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+}
+
+.report-header h1 {
+  margin: 0 0 var(--space-2);
+  font-size: var(--text-2xl);
+}
+
+.report-meta-line {
+  margin: 0 0 var(--space-2);
+  font-size: var(--text-xs);
+  color: var(--color-text-secondary);
+}
+
+.report-disclaimer {
+  margin: 0 0 var(--space-3);
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+.report-summary-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  font-size: var(--text-xs);
+  color: var(--color-text);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--color-border);
+}
+
+.report-weeks {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.report-week-heading {
+  margin: 0 0 var(--space-3);
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.report-task-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.report-task-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.report-task-title {
+  margin: 0 0 var(--space-1);
+  font-size: var(--text-base);
+}
+
+.report-task-meta {
+  margin: 0;
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+
+.report-task-description {
+  margin: var(--space-2) 0 0;
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+}
+
+.report-evidence-list {
+  list-style: none;
+  margin: var(--space-3) 0 0;
+  padding: var(--space-3) 0 0;
+  border-top: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.report-evidence-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+}
+
+.report-note-body {
+  margin: var(--space-1) 0 0 var(--space-5);
+  padding: var(--space-2) var(--space-3);
+  background-color: var(--color-surface-sunken);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  font-size: var(--text-xs);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+@media print {
+  body {
+    font-size: 11pt;
+    background-color: var(--color-bg);
+    color: var(--color-text);
+  }
+
+  .skip-link,
+  .offline-banner,
+  .app-header,
+  .no-print,
+  .sidebar-stack {
+    display: none !important;
+  }
+
+  .app-shell {
+    max-width: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .panel {
+    box-shadow: none;
+    border-color: var(--color-border);
+  }
+
+  .report-task-item {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  a[href^='http']::after {
+    content: ' (' attr(href) ')';
+    font-family: var(--font-mono);
+    font-size: 9pt;
+    color: var(--color-text-secondary);
+    word-break: break-all;
+  }
+}

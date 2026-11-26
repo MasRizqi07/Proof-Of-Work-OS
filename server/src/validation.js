@@ -88,6 +88,15 @@ const evidenceCreate = z.discriminatedUnion('kind', [
 const hasProofQuery = z.enum(['true', 'false']);
 const searchQuery = z.string().trim().max(100);
 const taskSearchQuery = z.string().trim().min(1).max(100);
+const heatmapWeeksQuery = z
+  .string()
+  .trim()
+  .regex(/^\d+$/, 'weeks must be an integer between 4 and 52')
+  .transform(Number)
+  .refine((n) => Number.isInteger(n) && n >= 4 && n <= 52, {
+    message: 'weeks must be between 4 and 52',
+  });
+const reportDaysQuery = z.enum(['30', '90', '365']).transform(Number);
 
 function parse(schema, value) {
   const result = schema.safeParse(value);
@@ -118,5 +127,7 @@ module.exports = {
   hasProofQuery,
   searchQuery,
   taskSearchQuery,
+  heatmapWeeksQuery,
+  reportDaysQuery,
   parse,
 };

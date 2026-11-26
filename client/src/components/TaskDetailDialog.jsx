@@ -1,27 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../lib/api';
+import { safeHref, getHostname } from '../lib/safeHref';
 import Icon from './Icon';
-
-function getHostname(urlStr) {
-  try {
-    return new URL(urlStr).hostname;
-  } catch {
-    return urlStr;
-  }
-}
-
-function safeHref(urlStr) {
-  try {
-    const parsed = new URL(urlStr);
-    if (parsed.protocol === 'http:' || parsed.protocol === 'https:') {
-      return urlStr;
-    }
-    return null;
-  } catch {
-    return null;
-  }
-}
 
 export default function TaskDetailDialog({
   isOpen,
@@ -130,6 +111,8 @@ function TaskDetailDialogModal({
       queryClient.invalidateQueries({ queryKey: ['evidence', task.id] });
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
       queryClient.invalidateQueries({ queryKey: ['metrics-summary'] });
+      queryClient.invalidateQueries({ queryKey: ['metrics-heatmap'] });
+      queryClient.invalidateQueries({ queryKey: ['report'] });
     },
     onError: (err) => {
       setEvidenceError(
@@ -145,6 +128,8 @@ function TaskDetailDialogModal({
       queryClient.invalidateQueries({ queryKey: ['evidence', task.id] });
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
       queryClient.invalidateQueries({ queryKey: ['metrics-summary'] });
+      queryClient.invalidateQueries({ queryKey: ['metrics-heatmap'] });
+      queryClient.invalidateQueries({ queryKey: ['report'] });
     },
     onError: (err) => {
       setEvidenceError(err.message || "Couldn't remove this proof.");

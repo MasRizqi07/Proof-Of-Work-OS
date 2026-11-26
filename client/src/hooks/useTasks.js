@@ -17,6 +17,8 @@ export function useTasks(enabled, { status, projectId, hasProof, q } = {}) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
       queryClient.invalidateQueries({ queryKey: ['metrics-summary'] });
+      queryClient.invalidateQueries({ queryKey: ['metrics-heatmap'] });
+      queryClient.invalidateQueries({ queryKey: ['report'] });
     },
   });
 
@@ -50,6 +52,8 @@ export function useTasks(enabled, { status, projectId, hasProof, q } = {}) {
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
       queryClient.invalidateQueries({ queryKey: ['metrics-summary'] });
+      queryClient.invalidateQueries({ queryKey: ['metrics-heatmap'] });
+      queryClient.invalidateQueries({ queryKey: ['report'] });
     },
   });
 
@@ -58,6 +62,8 @@ export function useTasks(enabled, { status, projectId, hasProof, q } = {}) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
       queryClient.invalidateQueries({ queryKey: ['metrics-summary'] });
+      queryClient.invalidateQueries({ queryKey: ['metrics-heatmap'] });
+      queryClient.invalidateQueries({ queryKey: ['report'] });
     },
   });
 

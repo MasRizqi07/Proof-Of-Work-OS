@@ -1,0 +1,12 @@
+{
+  "days": [
+    {
+      "date": "string",
+      "withProof": "number",
+      "withoutProof": "number"
+    }
+  ],
+  "from": "string",
+  "timezone": "string",
+  "to": "string"
+}

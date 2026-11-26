@@ -137,6 +137,10 @@ export const api = {
     request(`/tasks/${taskId}/evidence/${evidenceId}`, { method: 'DELETE' }),
   getMetricsSummary: ({ signal } = {}) =>
     request('/metrics/summary', { signal }),
+  getMetricsHeatmap: ({ signal, weeks = 26 } = {}) =>
+    request(`/metrics/heatmap?weeks=${weeks}`, { signal }),
+  getReport: ({ signal, days = 30 } = {}) =>
+    request(`/report?days=${days}`, { signal }),
   getProjects: ({ signal } = {}) => request('/projects', { signal }),
   createProject: (project) =>
     request('/projects', { method: 'POST', body: JSON.stringify(project) }),

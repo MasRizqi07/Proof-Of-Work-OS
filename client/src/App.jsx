@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { api } from './lib/api';
 import { isSupabaseConfigured } from './lib/supabase';
@@ -9,6 +9,7 @@ import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import AuthPanel from './components/AuthPanel';
 import StateMessage from './components/StateMessage';
 import MetricsPanel from './components/MetricsPanel';
+import ProofReportPage from './components/ProofReportPage';
 import TaskForm from './components/TaskForm';
 import TaskFilter from './components/TaskFilter';
 import TaskList from './components/TaskList';
@@ -51,8 +52,28 @@ function AuthenticatedApp() {
   const [isPaletteOpen, setIsPaletteOpen] = useState(false);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
   const [activeDetailTask, setActiveDetailTask] = useState(null);
+  const [pathname, setPathname] = useState(() =>
+    typeof window !== 'undefined' ? window.location.pathname : '/',
+  );
 
   const searchInputRef = useRef(null);
+
+  useEffect(() => {
+    const handlePopState = () => {
+      setPathname(window.location.pathname);
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
+  const navigate = (to) => {
+    if (window.location.pathname !== to) {
+      window.history.pushState({}, '', to);
+      setPathname(to);
+    }
+  };
+
+  const isReportRoute = pathname === '/report';
 
   const userQuery = useQuery({
     queryKey: ['user'],
@@ -177,23 +198,37 @@ function AuthenticatedApp() {
         )}
 
         {/* Overview Stats (PRD M-03 preservation) */}
-        <section className="stats-grid" aria-label="Overview statistics">
-          {[
-            ['completedTasks', 'Completed tasks'],
-            ['weeklyActivityEvents', 'Activity this week'],
-            ['projectsCompleted', 'Projects completed'],
-          ].map(([key, label]) => (
-            <div className="stat-card" key={key}>
-              <strong>{user?.metrics?.[key] ?? '—'}</strong>
-              <span>{label}</span>
-            </div>
-          ))}
-        </section>
+        {!isReportRoute && (
+          <section className="stats-grid" aria-label="Overview statistics">
+            {[
+              ['completedTasks', 'Completed tasks'],
+              ['weeklyActivityEvents', 'Activity this week'],
+              ['projectsCompleted', 'Projects completed'],
+            ].map(([key, label]) => (
+              <div className="stat-card" key={key}>
+                <strong>{user?.metrics?.[key] ?? '—'}</strong>
+                <span>{label}</span>
+              </div>
+            ))}
+          </section>
+        )}
 
-        {!authLoading && authenticated && (
+        {!authLoading && authenticated && isReportRoute && (
+          <main id="main" tabIndex="-1">
+            <ProofReportPage
+              enabled={authenticated}
+              onBack={() => navigate('/')}
+            />
+          </main>
+        )}
+
+        {!authLoading && authenticated && !isReportRoute && (
           <main id="main" tabIndex="-1" className="dashboard-grid">
             <div className="dashboard-main-stack">
-              <MetricsPanel enabled={authenticated} />
+              <MetricsPanel
+                enabled={authenticated}
+                onOpenReport={() => navigate('/report')}
+              />
 
               <section
                 className="panel tasks-panel"
@@ -299,7 +334,17 @@ function AuthenticatedApp() {
           btn?.click();
         }}
         onOpenHelp={() => setIsHelpOpen(true)}
-        onSelectTask={(task) => setActiveDetailTask(task)}
+        onSelectTask={(task) => {
+          navigate('/');
+          setActiveDetailTask(task);
+        }}
+        onPrintReport={() => {
+          if (isReportRoute) {
+            window.print();
+          } else {
+            navigate('/report');
+          }
+        }}
       />
 
       <ShortcutsHelpDialog

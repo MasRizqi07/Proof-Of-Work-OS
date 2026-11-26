@@ -62,6 +62,7 @@ export default function CommandPalette({
   onToggleTheme,
   onOpenHelp,
   onSelectTask,
+  onPrintReport,
 }) {
   const [query, setQuery] = useState('');
   const [activeIndex, setActiveIndex] = useState(0);
@@ -163,7 +164,11 @@ export default function CommandPalette({
         }
         break;
       case 'print-report':
-        window.print();
+        if (onPrintReport) {
+          onPrintReport();
+        } else {
+          window.print();
+        }
         break;
       default:
         break;

@@ -1,0 +1,43 @@
+{
+  "days": "number",
+  "displayName": "string",
+  "from": "string",
+  "generatedAt": "string",
+  "summary": {
+    "completed": "number",
+    "proofRate": "number",
+    "withProof": "number",
+    "withoutProof": "number"
+  },
+  "timezone": "string",
+  "to": "string",
+  "weeks": [
+    {
+      "tasks": [
+        {
+          "completedAt": "string",
+          "description": "string",
+          "evidence": [
+            {
+              "body": "null",
+              "createdAt": "string",
+              "id": "string",
+              "kind": "string",
+              "label": "string",
+              "taskId": "string",
+              "url": "string",
+              "userId": "string"
+            }
+          ],
+          "hasProof": "boolean",
+          "id": "string",
+          "priority": "string",
+          "projectName": "string",
+          "proofCount": "number",
+          "title": "string"
+        }
+      ],
+      "weekStart": "string"
+    }
+  ]
+}

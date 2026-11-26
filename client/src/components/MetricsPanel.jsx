@@ -1,12 +1,21 @@
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../lib/api';
 import WeeklyProofChart from './WeeklyProofChart';
+import WeeklyHeatmap from './WeeklyHeatmap';
 import StateMessage from './StateMessage';
+import Icon from './Icon';
 
-export default function MetricsPanel({ enabled = true }) {
+export default function MetricsPanel({ enabled = true, onOpenReport }) {
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ['metrics-summary'],
     queryFn: ({ signal }) => api.getMetricsSummary({ signal }),
+    enabled,
+    retry: 1,
+  });
+
+  const heatmapQuery = useQuery({
+    queryKey: ['metrics-heatmap', 26],
+    queryFn: ({ signal }) => api.getMetricsHeatmap({ signal, weeks: 26 }),
     enabled,
     retry: 1,
   });
@@ -52,6 +61,16 @@ export default function MetricsPanel({ enabled = true }) {
           <p className="eyebrow">Momentum</p>
           <h2 id="metrics-heading">Proof summary</h2>
         </div>
+        {onOpenReport && (
+          <button
+            type="button"
+            className="button button-secondary button-sm"
+            onClick={onOpenReport}
+          >
+            <Icon name="calendar" size={14} />
+            <span>Proof report</span>
+          </button>
+        )}
       </div>
 
       <div
@@ -77,6 +96,21 @@ export default function MetricsPanel({ enabled = true }) {
       </div>
 
       <WeeklyProofChart weekly={weekly} />
+
+      {heatmapQuery.isError ? (
+        <StateMessage>
+          Couldn&apos;t load proof heatmap.{' '}
+          <button
+            type="button"
+            className="link-button"
+            onClick={() => heatmapQuery.refetch()}
+          >
+            Retry
+          </button>
+        </StateMessage>
+      ) : heatmapQuery.data ? (
+        <WeeklyHeatmap heatmap={heatmapQuery.data} />
+      ) : null}
     </section>
   );
 }

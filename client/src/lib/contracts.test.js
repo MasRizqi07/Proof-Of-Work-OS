@@ -2,6 +2,8 @@ import { describe, it, expect } from 'vitest';
 import tasksContract from '../../../server/integration/contracts/tasks.json';
 import evidenceContract from '../../../server/integration/contracts/evidence.json';
 import metricsSummaryContract from '../../../server/integration/contracts/metrics-summary.json';
+import metricsHeatmapContract from '../../../server/integration/contracts/metrics-heatmap.json';
+import reportContract from '../../../server/integration/contracts/report.json';
 import projectsContract from '../../../server/integration/contracts/projects.json';
 
 function extractSchema(data) {
@@ -128,5 +130,70 @@ describe('R-11: Client Contract Validation', () => {
     };
 
     expect(extractSchema(mockProjectsResponse)).toEqual(projectsContract);
+  });
+
+  it('client heatmap fixture matches server metrics-heatmap contract', () => {
+    const mockHeatmapResponse = {
+      timezone: 'Asia/Jakarta',
+      from: '2026-06-01',
+      to: '2026-11-29',
+      days: [
+        {
+          date: '2026-06-01',
+          withProof: 2,
+          withoutProof: 1,
+        },
+      ],
+    };
+
+    expect(extractSchema(mockHeatmapResponse)).toEqual(metricsHeatmapContract);
+  });
+
+  it('client report fixture matches server report contract', () => {
+    const mockReportResponse = {
+      timezone: 'Asia/Jakarta',
+      generatedAt: '2026-11-26T10:00:00.000Z',
+      days: 30,
+      from: '2026-10-28',
+      to: '2026-11-26',
+      displayName: 'User A',
+      summary: {
+        completed: 1,
+        withProof: 1,
+        withoutProof: 0,
+        proofRate: 1,
+      },
+      weeks: [
+        {
+          weekStart: '2026-11-23',
+          tasks: [
+            {
+              id: 'mock-task-1',
+              title: 'Report contract task',
+              description: 'Completed task with evidence',
+              priority: 'high',
+              completedAt: '2026-11-25T10:00:00.000Z',
+              projectName: 'Core Platform',
+              hasProof: true,
+              proofCount: 1,
+              evidence: [
+                {
+                  id: 'mock-evidence-1',
+                  taskId: 'mock-task-1',
+                  userId: 'mock-user-1',
+                  kind: 'url',
+                  label: 'PR Link',
+                  url: 'https://github.com/example/repo/pull/1',
+                  body: null,
+                  createdAt: '2026-11-25T10:05:00.000Z',
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    };
+
+    expect(extractSchema(mockReportResponse)).toEqual(reportContract);
   });
 });

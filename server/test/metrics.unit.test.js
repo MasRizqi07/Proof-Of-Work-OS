@@ -4,10 +4,18 @@ const assert = require('node:assert/strict');
 const {
   computeStreaks,
   weekStartForDate,
+  localDateForTimestamp,
+  utcAddDays,
   buildWeeklyRange,
+  buildDayRange,
   previousWeek,
   isConsecutiveWeek,
 } = require('../src/services/metrics');
+const {
+  heatmapWeeksQuery,
+  reportDaysQuery,
+  parse,
+} = require('../src/validation');
 
 // ───────────────────────────────────────────────────────────────
 // weekStartForDate
@@ -180,5 +188,61 @@ test('R-04: DST resilience in southern hemisphere (Pacific/Auckland)', () => {
     assert.equal(result.currentWeeks, 3);
   } finally {
     process.env.TZ = origTz;
+  }
+});
+
+// ───────────────────────────────────────────────────────────────
+// H-01 & RP-01 unit helpers and validation
+// ───────────────────────────────────────────────────────────────
+
+test('H-01: localDateForTimestamp distinguishes 16:59:59Z and 17:30:00Z in Asia/Jakarta', () => {
+  assert.equal(
+    localDateForTimestamp(new Date('2026-11-15T16:59:59Z'), 'Asia/Jakarta'),
+    '2026-11-15',
+  );
+  assert.equal(
+    localDateForTimestamp(new Date('2026-11-15T17:30:00Z'), 'Asia/Jakarta'),
+    '2026-11-16',
+  );
+  assert.equal(
+    localDateForTimestamp(new Date('2026-11-15T17:30:00Z'), 'UTC'),
+    '2026-11-15',
+  );
+});
+
+test('H-01: utcAddDays and buildDayRange produce exact weeks * 7 continuous ISO dates', () => {
+  assert.equal(utcAddDays('2026-11-16', -1), '2026-11-15');
+  assert.equal(utcAddDays('2026-03-01', -1), '2026-02-28');
+
+  const days26 = buildDayRange('2026-06-01', 26 * 7);
+  assert.equal(days26.length, 182);
+  assert.equal(days26[0], '2026-06-01');
+  assert.equal(days26[181], '2026-11-29');
+
+  const days52 = buildDayRange('2025-12-01', 52 * 7);
+  assert.equal(days52.length, 364);
+});
+
+test('H-01 & RP-01: query schema validation rejects invalid weeks and days', () => {
+  assert.equal(parse(heatmapWeeksQuery, '4'), 4);
+  assert.equal(parse(heatmapWeeksQuery, '26'), 26);
+  assert.equal(parse(heatmapWeeksQuery, '52'), 52);
+
+  for (const badWeek of ['3', '53', 'abc', '', { a: '1' }, '26.5']) {
+    assert.throws(() => parse(heatmapWeeksQuery, badWeek), {
+      statusCode: 400,
+      code: 'VALIDATION_ERROR',
+    });
+  }
+
+  assert.equal(parse(reportDaysQuery, '30'), 30);
+  assert.equal(parse(reportDaysQuery, '90'), 90);
+  assert.equal(parse(reportDaysQuery, '365'), 365);
+
+  for (const badDay of ['7', '180', 'abc', '', { a: '30' }]) {
+    assert.throws(() => parse(reportDaysQuery, badDay), {
+      statusCode: 400,
+      code: 'VALIDATION_ERROR',
+    });
   }
 });

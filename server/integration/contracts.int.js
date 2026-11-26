@@ -122,6 +122,28 @@ test('R-11: cross-boundary contracts for all client-consumed endpoints', async (
   assert.equal(projectsGet.status, 200);
   assert.equal(projectsGet.body.items.length > 0, true);
   verifyOrUpdateContract('projects', projectsGet.body);
+
+  // Update task completedAt to today so heatmap and report ranges include it reliably
+  await prisma.task.update({
+    where: { id: taskId },
+    data: { completedAt: new Date() },
+  });
+
+  // 5. GET /api/metrics/heatmap
+  const heatmapGet = await request(app)
+    .get('/api/metrics/heatmap')
+    .set('Authorization', 'Bearer user-a');
+  assert.equal(heatmapGet.status, 200);
+  assert.equal(heatmapGet.body.days.length, 26 * 7);
+  verifyOrUpdateContract('metrics-heatmap', heatmapGet.body);
+
+  // 6. GET /api/report
+  const reportGet = await request(app)
+    .get('/api/report?days=30')
+    .set('Authorization', 'Bearer user-a');
+  assert.equal(reportGet.status, 200);
+  assert.equal(reportGet.body.weeks.length > 0, true);
+  verifyOrUpdateContract('report', reportGet.body);
 });
 
 test.after(async () => {
